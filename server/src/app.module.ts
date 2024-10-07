@@ -29,7 +29,8 @@ dotenv.config({ path: join(__dirname, '..', envFile) });
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       autoLoadEntities: true,
-      synchronize: true,
+      migrations: ['dist/migrations/*.js'], // Specify the migration path
+      migrationsRun: true,
     }),
     CloudinaryModule,
     UploadModule,
