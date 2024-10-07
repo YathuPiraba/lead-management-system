@@ -7,6 +7,8 @@ import { UploadModule } from './upload/upload.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { dataSourceOptions } from './data-source';
+import { StudentsModule } from './students/students.module';
+import { CallLogsModule } from './call-logs/call-logs.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { dataSourceOptions } from './data-source';
     CloudinaryModule,
     UploadModule,
     UsersModule,
+    StudentsModule,
+    CallLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
