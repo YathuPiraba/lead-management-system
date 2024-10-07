@@ -18,5 +18,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "types": ["node", "express", "multer"],
+    "esModuleInterop": true,
+    "moduleResolution": "node"
   }
 }
