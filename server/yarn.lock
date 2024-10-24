@@ -1070,6 +1070,13 @@
   dependencies:
     undici-types "~6.19.2"
 
+"@types/nodemailer@^6.4.16":
+  version "6.4.16"
+  resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-6.4.16.tgz#db006abcb1e1c8e6ea2fb53b27fefec3c03eaa6c"
+  integrity sha512-uz6hN6Pp0upXMcilM61CoKyjT7sskBoOWpptkjjJp8jIMlTdc3xG01U7proKkXzruMS4hS0zqtHNkNPFB20rKQ==
+  dependencies:
+    "@types/node" "*"
+
 "@types/qs@*":
   version "6.9.16"
   resolved "https://registry.npmjs.org/@types/qs/-/qs-6.9.16.tgz"
@@ -4250,6 +4257,11 @@ node-releases@^2.0.18:
   resolved "https://registry.npmjs.org/node-releases/-/node-releases-2.0.18.tgz"
   integrity sha512-d9VeXT4SJ7ZeOqGX6R5EM022wpL+eWPooLI+5UpWn2jCT1aosUQEhQP214x33Wkwx3JQMvIm+tIoVOdodFS40g==
 
+nodemailer@^6.9.15:
+  version "6.9.15"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.15.tgz#57b79dc522be27e0e47ac16cc860aa0673e62e04"
+  integrity sha512-AHf04ySLC6CIfuRtRiEYtGEXgRfa6INgWGluDhnxTZhHSKvrBu7lc1VVchQ0d8nPc4cFaZoPq8vkyNoZr0TpGQ==
+
 nodemon@^3.1.7:
   version "3.1.7"
   resolved "https://registry.npmjs.org/nodemon/-/nodemon-3.1.7.tgz"
@@ -4903,6 +4915,7 @@ serve-static@1.16.2:
 "server@file:.":
   version "0.0.1"
   dependencies:
+    "@nestjs-modules/ioredis" "^2.0.2"
     "@nestjs/common" "^10.0.0"
     "@nestjs/config" "^3.2.3"
     "@nestjs/core" "^10.0.0"
@@ -4918,12 +4931,14 @@ serve-static@1.16.2:
     cloudinary "^2.5.0"
     cors "^2.8.5"
     dotenv "^16.4.5"
+    ioredis "^5.4.1"
     jsonwebtoken "^9.0.2"
     multer "^1.4.5-lts.1"
+    nodemailer "^6.9.15"
     pg "^8.13.0"
     reflect-metadata "^0.2.0"
     rxjs "^7.8.1"
-    server "file:../../../../AppData/Local/Yarn/Cache/v6/npm-server-0.0.1-9bec97d7-6239-474e-81be-aa8ea79994eb-1729761166585/node_modules/server"
+    server "file:../../../../AppData/Local/Yarn/Cache/v6/npm-server-0.0.1-9bf84338-c640-4ef1-8306-952c36355ead-1729770394000/node_modules/server"
     socket.io "^4.8.0"
     typeorm "^0.3.20"
 

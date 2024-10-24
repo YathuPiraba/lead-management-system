@@ -12,6 +12,7 @@ import { CallLogsModule } from './call-logs/call-logs.module';
 import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RedisModuleOptions } from '@nestjs-modules/ioredis';
+import { AuthModule } from './auth/auth.module';
 
 console.log('ss', process.env.SECRET_KEY);
 @Module({
@@ -61,6 +62,7 @@ console.log('ss', process.env.SECRET_KEY);
     UsersModule,
     StudentsModule,
     CallLogsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
