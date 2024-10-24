@@ -13,7 +13,8 @@ import { Role } from './role.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from 'nestjs-redis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +26,7 @@ export class UsersService {
     private readonly roleRepository: Repository<Role>,
 
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
+    @InjectRedis() private readonly redis: Redis,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -141,9 +142,12 @@ export class UsersService {
     );
 
     // Store refresh token in Redis
-    await this.redisService
-      .getClient()
-      .set(user.id.toString(), refreshToken, 'EX', 7 * 24 * 60 * 60); // 7 days expiration
+    await this.redis.set(
+      user.id.toString(),
+      refreshToken,
+      'EX',
+      7 * 24 * 60 * 60,
+    ); // 7 days expiration
 
     return { accessToken, refreshToken };
   }

@@ -19,14 +19,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from 'nestjs-redis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Redis } from 'ioredis';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   @Post('register_user')
@@ -68,7 +69,7 @@ export class UsersController {
       throw new UnauthorizedException('Refresh token not found');
     }
 
-    const userId = await this.redisService.getClient().get(refreshToken); // Get user ID from Redis
+    const userId = await this.redis.get(refreshToken); // Get user ID from Redis
     if (!userId) {
       throw new UnauthorizedException('Invalid refresh token');
     }
