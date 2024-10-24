@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +11,9 @@ import * as argon2 from 'argon2';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Role } from './role.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { RedisService } from 'nestjs-redis';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +23,9 @@ export class UsersService {
 
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -108,5 +118,33 @@ export class UsersService {
 
     // Save the updated user
     return this.userRepository.save(user);
+  }
+
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const { userName, password } = loginDto;
+    const user = await this.userRepository.findOne({ where: { userName } });
+
+    if (!user || !(await argon2.verify(user.password, password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate tokens
+    const accessToken = this.jwtService.sign(
+      { id: user.id, userName: user.userName },
+      { expiresIn: '15m' },
+    );
+    const refreshToken = this.jwtService.sign(
+      { id: user.id, userName: user.userName },
+      { expiresIn: '7d' },
+    );
+
+    // Store refresh token in Redis
+    await this.redisService
+      .getClient()
+      .set(user.id.toString(), refreshToken, 'EX', 7 * 24 * 60 * 60); // 7 days expiration
+
+    return { accessToken, refreshToken };
   }
 }

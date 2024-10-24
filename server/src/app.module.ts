@@ -9,6 +9,8 @@ import { UsersModule } from './users/users.module';
 import { dataSourceOptions } from './data-source';
 import { StudentsModule } from './students/students.module';
 import { CallLogsModule } from './call-logs/call-logs.module';
+import { JwtModule } from '@nestjs/jwt';
+import { RedisModule } from 'nestjs-redis';
 
 @Module({
   imports: [
@@ -18,6 +20,11 @@ import { CallLogsModule } from './call-logs/call-logs.module';
     TypeOrmModule.forRootAsync({
       useFactory: () => dataSourceOptions,
     }),
+    JwtModule.register({
+      secret: process.env.SECRET_KEY,
+      signOptions: { expiresIn: '15m' },
+    }),
+    RedisModule.register({}),
     CloudinaryModule,
     UploadModule,
     UsersModule,
