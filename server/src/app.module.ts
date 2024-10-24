@@ -13,6 +13,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RedisModuleOptions } from '@nestjs-modules/ioredis';
 
+console.log('ss', process.env.SECRET_KEY);
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,9 +22,25 @@ import { RedisModuleOptions } from '@nestjs-modules/ioredis';
     TypeOrmModule.forRootAsync({
       useFactory: () => dataSourceOptions,
     }),
-    JwtModule.register({
-      secret: process.env.SECRET_KEY,
-      signOptions: { expiresIn: '15m' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('SECRET_KEY');
+
+        if (!secret) {
+          throw new Error('JWT secret key is not configured');
+        }
+
+        return {
+          secret,
+          global: true,
+          signOptions: {
+            expiresIn: '15m',
+            algorithm: 'HS256',
+          },
+        };
+      },
+      inject: [ConfigService],
     }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],

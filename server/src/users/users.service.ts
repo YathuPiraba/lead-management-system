@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -27,6 +29,7 @@ export class UsersService {
 
     private readonly jwtService: JwtService,
     @InjectRedis() private readonly redis: Redis,
+    private readonly configService: ConfigService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -131,24 +134,33 @@ export class UsersService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Generate tokens
-    const accessToken = this.jwtService.sign(
-      { id: user.id, userName: user.userName },
-      { expiresIn: '15m' },
-    );
-    const refreshToken = this.jwtService.sign(
-      { id: user.id, userName: user.userName },
-      { expiresIn: '7d' },
-    );
+    try {
+      // Generate tokens with payload only
+      const payload = { id: user.id, userName: user.userName };
 
-    // Store refresh token in Redis
-    await this.redis.set(
-      user.id.toString(),
-      refreshToken,
-      'EX',
-      7 * 24 * 60 * 60,
-    ); // 7 days expiration
+      // Get access token
+      const accessToken = this.jwtService.sign(payload, {
+        secret: this.configService.get<string>('SECRET_KEY'),
+        expiresIn: '15m',
+      });
 
-    return { accessToken, refreshToken };
+      // Get refresh token
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: this.configService.get<string>('SECRET_KEY'),
+        expiresIn: '7d',
+      });
+      // Store refresh token in Redis
+      await this.redis.set(
+        user.id.toString(),
+        refreshToken,
+        'EX',
+        7 * 24 * 60 * 60,
+      );
+
+      return { accessToken, refreshToken };
+    } catch (error) {
+      console.error('Token generation error:', error);
+      throw new InternalServerErrorException('Error generating tokens');
+    }
   }
 }
