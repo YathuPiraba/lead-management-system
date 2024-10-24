@@ -24,4 +24,18 @@ export class CloudinaryService {
       uploadStream.end(file.buffer);
     });
   }
+
+  async deleteImage(imageUrl: string) {
+    try {
+      const urlParts = imageUrl.split('/');
+      const publicIdWithExt = urlParts.slice(-2).join('/'); // Gets "users/zlbqwnznbkmojjcddtow.jpg"
+      const publicId = publicIdWithExt.split('.')[0]; // Removes the extension: "users/zlbqwnznbkmojjcddtow"
+
+      const result = await cloudinary.uploader.destroy(publicId);
+      return result;
+    } catch (error) {
+      console.error('Error deleting image from Cloudinary:', error);
+      throw error;
+    }
+  }
 }
