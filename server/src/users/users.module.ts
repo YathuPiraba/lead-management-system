@@ -6,6 +6,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { User } from './user.entity';
 import { Role } from './role.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { EmailService } from 'src/email/email.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { JwtModule } from '@nestjs/jwt';
       signOptions: { expiresIn: '15m' }, // You can customize this
     }),
   ],
-  providers: [UsersService],
+  providers: [UsersService, EmailService],
   controllers: [UsersController],
 })
 export class UsersModule {}

@@ -21,6 +21,9 @@ export class User {
   email: string;
 
   @Column()
+  firstName: string;
+
+  @Column()
   password: string;
 
   @Column({ nullable: true })
@@ -35,6 +38,9 @@ export class User {
   @Column({ nullable: true })
   password_reset_expires_at: Date;
 
+  @Column({ nullable: true })
+  contactNo: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -43,4 +49,7 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @Column({ default: true })
+  isFirstLogin: boolean;
 }

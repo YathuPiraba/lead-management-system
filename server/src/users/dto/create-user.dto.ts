@@ -5,20 +5,20 @@ import {
   IsOptional,
   IsUrl,
   IsInt,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  userName: string;
+  firstName: string;
 
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @IsString()
-  @IsNotEmpty()
-  password: string;
+  @IsNumber()
+  contactNo: number;
 
   @IsInt()
   @IsNotEmpty()

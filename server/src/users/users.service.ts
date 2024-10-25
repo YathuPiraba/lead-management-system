@@ -2,7 +2,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  InternalServerErrorException,
+  // InternalServerErrorException,
 } from '@nestjs/common';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,6 +17,10 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
 import { ConfigService } from '@nestjs/config';
+import { EmailService } from 'src/email/email.service';
+import { generateOneTimePassword } from 'src/utils/generate-password';
+import { generateUsername } from 'src/utils/generate-username';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -31,16 +35,18 @@ export class UsersService {
     @InjectRedis() private readonly redis: Redis,
     private readonly configService: ConfigService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(
     createUserDto: CreateUserDto,
     image?: Express.Multer.File,
-  ): Promise<User> {
-    const { password, ...restUserData } = createUserDto;
+  ): Promise<void> {
+    const userName = generateUsername(createUserDto.email);
+    const oneTimePassword = generateOneTimePassword();
 
     // Hash the password
-    const hashedPassword = await argon2.hash(password);
+    const hashedPassword = await argon2.hash(oneTimePassword);
 
     const roleId = 2;
 
@@ -55,11 +61,12 @@ export class UsersService {
 
     // Prepare base user data
     let userData = {
-      ...restUserData,
+      ...createUserDto,
+      userName,
       password: hashedPassword,
       role: role,
+      isFirstLogin: true,
     };
-
     // Handle image upload if provided
     if (image) {
       const uploadedImage = await this.cloudinaryService.uploadImage(image);
@@ -69,9 +76,16 @@ export class UsersService {
       };
     }
 
-    // Create and save the new user
     const user = this.userRepository.create(userData);
-    return this.userRepository.save(user);
+    await this.userRepository.save(user);
+
+    // Send email with credentials
+    await this.emailService.sendStaffCredentials(
+      createUserDto.email,
+      userName,
+      oneTimePassword,
+      createUserDto.firstName,
+    );
   }
 
   async updateUser(
@@ -124,43 +138,137 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async login(
-    loginDto: LoginDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const { userName, password } = loginDto;
-    const user = await this.userRepository.findOne({ where: { userName } });
+  async login(loginDto: LoginDto): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    isFirstLogin: boolean;
+    user: any;
+  }> {
+    const user = await this.userRepository.findOne({
+      where: [{ userName: loginDto.userName }],
+      relations: ['role'],
+    });
 
-    if (!user || !(await argon2.verify(user.password, password))) {
+    if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    try {
-      // Generate tokens with payload only
-      const payload = { id: user.id, userName: user.userName };
-
-      // Get access token
-      const accessToken = this.jwtService.sign(payload, {
-        secret: this.configService.get<string>('SECRET_KEY'),
-        expiresIn: '15m',
-      });
-
-      // Get refresh token
-      const refreshToken = this.jwtService.sign(payload, {
-        secret: this.configService.get<string>('SECRET_KEY'),
-        expiresIn: '7d',
-      });
-      // Store refresh token in Redis
-      await this.redis.set(
-        user.id.toString(),
-        refreshToken,
-        'EX',
-        7 * 24 * 60 * 60,
-      );
-
-      return { accessToken, refreshToken };
-    } catch (error) {
-      console.error('Token generation error:', error);
-      throw new InternalServerErrorException('Error generating tokens');
+    const isPasswordValid = await argon2.verify(
+      user.password,
+      loginDto.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
+
+    // Generate tokens with isFirstLogin in payload
+    const payload = {
+      sub: user.id,
+      username: user.userName,
+      isFirstLogin: user.isFirstLogin,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    // Store refresh token in Redis
+    await this.redis.set(
+      `refresh_token:${user.id}`,
+      refreshToken,
+      'EX',
+      7 * 24 * 60 * 60,
+    );
+
+    return {
+      accessToken,
+      refreshToken,
+      isFirstLogin: user.isFirstLogin,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.userName,
+        firstName: user.firstName,
+        role: user.role,
+      },
+    };
+  }
+
+  async generateNewTokens(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const payload = {
+      sub: user.id,
+      username: user.userName,
+      isFirstLogin: false, // After password change, this will always be false
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    // Update refresh token in Redis
+    await this.redis.set(
+      `refresh_token:${user.id}`,
+      refreshToken,
+      'EX',
+      7 * 24 * 60 * 60,
+    );
+
+    return { accessToken, refreshToken };
+  }
+
+  async changePassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordValid = await argon2.verify(
+      user.password,
+      changePasswordDto.currentPassword,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Validate new password (you might want to add more validation rules)
+    if (changePasswordDto.newPassword.length < 8) {
+      throw new UnauthorizedException(
+        'New password must be at least 8 characters long',
+      );
+    }
+
+    // Hash and update the new password
+    const hashedPassword = await argon2.hash(changePasswordDto.newPassword);
+    user.password = hashedPassword;
+    user.isFirstLogin = false; // Update first login flag
+
+    await this.userRepository.save(user);
+  }
+
+  async findUserById(id: number): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['role'], // Include related data as needed
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    return user;
   }
 }

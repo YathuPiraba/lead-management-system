@@ -10,17 +10,18 @@ import {
   Req,
   HttpStatus,
   UnauthorizedException,
+  Get,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'; // For handling file uploads
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -34,31 +35,99 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('image'))
   async register(
     @Body() createUserDto: CreateUserDto,
-    @UploadedFile() image: Express.Multer.File, // Image file uploaded
-  ): Promise<User> {
-    return this.usersService.register(createUserDto, image); // Pass createUserDto and image
-  }
-
-  @Put('update_user/:id')
-  @UseInterceptors(FileInterceptor('image'))
-  async update(
-    @Param('id') id: string, // User ID from the URL
-    @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() image: Express.Multer.File,
-  ): Promise<User> {
-    return this.usersService.updateUser(+id, updateUserDto, image);
+    @Res() res: Response,
+  ): Promise<Response> {
+    await this.usersService.register(createUserDto, image); // Execute registration process
+
+    // Return a success message
+    return res.status(HttpStatus.OK).json({
+      message: 'Your username and password have been sent to your email.',
+    });
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const { accessToken, refreshToken } =
+  async login(@Body() loginDto: LoginDto, @Res() res: Response): Promise<void> {
+    const { accessToken, refreshToken, isFirstLogin, user } =
       await this.usersService.login(loginDto);
+
     // Set refresh token in cookies
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    return res.status(HttpStatus.OK).json({ accessToken });
+    res.status(HttpStatus.OK).json({
+      accessToken,
+      isFirstLogin,
+      user,
+    });
+  }
+
+  @Post('change-password')
+  async changePassword(
+    @Req() req: Request,
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Res() res: Response,
+  ): Promise<Response> {
+    const userId = (req as any).user.id;
+
+    try {
+      await this.usersService.changePassword(userId, changePasswordDto);
+
+      // If it's first login, generate new tokens after password change
+      if ((req as any).user.isFirstLogin) {
+        const { accessToken, refreshToken } =
+          await this.usersService.generateNewTokens(userId);
+
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        return res.status(HttpStatus.OK).json({
+          message: 'Password changed successfully',
+          accessToken,
+        });
+      }
+
+      return res.status(HttpStatus.OK).json({
+        message: 'Password changed successfully',
+      });
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: error.message,
+        });
+      }
+      throw error;
+    }
+  }
+
+  @Get('user-details')
+  //@UseGuards(JwtAuthGuard) // Use guard to ensure the user is authenticated
+  async getUserDetails(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<Response> {
+    const userId = (req as any).user.id;
+
+    // Fetch user details
+    const user = await this.usersService.findUserById(userId);
+
+    if (!user) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'User not found' });
+    }
+
+    // Remove the password field before returning the user details
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
+    return res.status(HttpStatus.OK).json({
+      message: 'User details fetched successfully',
+      user: userWithoutPassword,
+    });
   }
 
   @Post('refresh')
@@ -78,5 +147,26 @@ export class UsersController {
     const accessToken = this.jwtService.sign({ id: userId });
 
     return res.status(HttpStatus.OK).json({ accessToken });
+  }
+
+  @Put('update_user/:id')
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
+    @Param('id') id: string, // User ID from the URL
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() image: Express.Multer.File,
+    @Res() res: Response, // Add the response parameter
+  ): Promise<Response> {
+    const updatedUser = await this.usersService.updateUser(
+      +id,
+      updateUserDto,
+      image,
+    );
+
+    // Return a success message and the updated user data
+    return res.status(HttpStatus.OK).json({
+      message: 'User updated successfully',
+      user: updatedUser,
+    });
   }
 }
