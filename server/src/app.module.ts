@@ -13,8 +13,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RedisModuleOptions } from '@nestjs-modules/ioredis';
 import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
-console.log('ss', process.env.SECRET_KEY);
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -65,6 +66,12 @@ console.log('ss', process.env.SECRET_KEY);
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
