@@ -9,6 +9,9 @@ import { UsersModule } from '../users/users.module';
 import { EmailService } from '../email/email.service';
 import { PasswordResetService } from './password-reset.service';
 import { PasswordResetController } from './password-reset.controller';
+import { Role } from 'src/users/role.entity';
+import { UsersService } from 'src/users/users.service';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -23,11 +26,12 @@ import { PasswordResetController } from './password-reset.controller';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Role]),
     ConfigModule,
     UsersModule,
+    CloudinaryModule,
   ],
-  providers: [JwtStrategy, EmailService, PasswordResetService],
+  providers: [JwtStrategy, EmailService, PasswordResetService, UsersService],
   controllers: [PasswordResetController],
   exports: [PassportModule, JwtModule],
 })
