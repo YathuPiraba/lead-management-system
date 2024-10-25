@@ -36,7 +36,7 @@ export class PasswordResetService {
     user.password_reset_expires_at = expiresAt;
     await this.userRepository.save(user);
 
-    await this.emailService.sendOTPEmail(email, otp);
+    await this.emailService.sendOTPEmail(email, otp, user.userName);
   }
 
   async verifyOTP(email: string, otp: string): Promise<boolean> {

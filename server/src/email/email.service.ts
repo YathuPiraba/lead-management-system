@@ -19,12 +19,16 @@ export class EmailService {
     });
   }
 
-  async sendOTPEmail(email: string, otp: string): Promise<void> {
+  async sendOTPEmail(
+    email: string,
+    otp: string,
+    userName: string,
+  ): Promise<void> {
     const mailOptions = {
       from: this.configService.get('EMAIL_FROM'),
       to: email,
       subject: 'Password Reset OTP',
-      html: getOTPEmailTemplate(otp, 10), // 10 minutes expiry
+      html: getOTPEmailTemplate(otp, 10, userName), // 10 minutes expiry
     };
 
     await this.transporter.sendMail(mailOptions);

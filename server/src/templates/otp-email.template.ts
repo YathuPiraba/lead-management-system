@@ -1,4 +1,8 @@
-export const getOTPEmailTemplate = (otp: string, expiresInMinutes: number) => `
+export const getOTPEmailTemplate = (
+  otp: string,
+  expiresInMinutes: number,
+  userName: string,
+) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,12 +14,17 @@ export const getOTPEmailTemplate = (otp: string, expiresInMinutes: number) => `
             padding: 20px;
             background-color: #f7f7f7;
         }
-        .header {
+        .header-table {
+            width: 100%;
             background-color: #4A90E2;
-            color: white;
+            border-radius: 5px 5px 0 0;
+        }
+        .header-cell {
             padding: 20px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
+        }
+        .header-logo {
+            max-width: 100px;
         }
         .content {
             background-color: white;
@@ -23,14 +32,19 @@ export const getOTPEmailTemplate = (otp: string, expiresInMinutes: number) => `
             border-radius: 0 0 5px 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .otp-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
         .otp-code {
             font-size: 32px;
             font-weight: bold;
             color: #4A90E2;
-            text-align: center;
-            padding: 20px;
             letter-spacing: 5px;
-            margin: 20px 0;
+            margin: 0;
         }
         .expiry-text {
             color: #666;
@@ -47,14 +61,21 @@ export const getOTPEmailTemplate = (otp: string, expiresInMinutes: number) => `
 </head>
 <body>
     <div class="email-container">
-        <div class="header">
-            <h2>Password Reset OTP</h2>
-        </div>
+        <table class="header-table" role="presentation" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="header-cell">
+                    <img src="https://res.cloudinary.com/dytx4wqfa/image/upload/v1728032282/pnfqgpmqybjcrlctedp0.jpg" alt="Logo" class="header-logo" />
+                    <h2 style="color: white; margin: 10px 0 0;">Password Reset OTP</h2>
+                </td>
+            </tr>
+        </table>
         <div class="content">
-            <p>Hello,</p>
+            <p>Hello,${userName}</p>
             <p>You have requested to reset your password. Please use the following OTP to proceed:</p>
             
-            <div class="otp-code">${otp}</div>
+            <div class="otp-container">
+                <div class="otp-code">${otp}</div>
+            </div>
             
             <p class="expiry-text">This OTP will expire in ${expiresInMinutes} minutes.</p>
             
