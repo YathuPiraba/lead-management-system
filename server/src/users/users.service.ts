@@ -142,7 +142,6 @@ export class UsersService {
     accessToken: string;
     refreshToken: string;
     isFirstLogin: boolean;
-    user: any;
   }> {
     const user = await this.userRepository.findOne({
       where: [{ userName: loginDto.userName }],
@@ -183,13 +182,6 @@ export class UsersService {
       accessToken,
       refreshToken,
       isFirstLogin: user.isFirstLogin,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.userName,
-        firstName: user.firstName,
-        role: user.role,
-      },
     };
   }
 

@@ -7,14 +7,21 @@ import { User } from './user.entity';
 import { Role } from './role.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role]),
     CloudinaryModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET, // Use a secret key from environment variables
-      signOptions: { expiresIn: '15m' }, // You can customize this
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION') || '1h',
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   providers: [UsersService, EmailService],

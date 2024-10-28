@@ -11,6 +11,8 @@ import {
   HttpStatus,
   UnauthorizedException,
   Get,
+  UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'; // For handling file uploads
 import { UsersService } from './users.service';
@@ -22,15 +24,20 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Redis } from 'ioredis';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
     private readonly jwtService: JwtService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
+  @Public()
   @Post('register_user')
   @UseInterceptors(FileInterceptor('image'))
   async register(
@@ -46,9 +53,10 @@ export class UsersController {
     });
   }
 
+  @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response): Promise<void> {
-    const { accessToken, refreshToken, isFirstLogin, user } =
+    const { accessToken, refreshToken, isFirstLogin } =
       await this.usersService.login(loginDto);
 
     // Set refresh token in cookies
@@ -59,7 +67,6 @@ export class UsersController {
     res.status(HttpStatus.OK).json({
       accessToken,
       isFirstLogin,
-      user,
     });
   }
 
@@ -104,7 +111,7 @@ export class UsersController {
   }
 
   @Get('user-details')
-  //@UseGuards(JwtAuthGuard) // Use guard to ensure the user is authenticated
+  @UseGuards(JwtAuthGuard) // Use guard to ensure the user is authenticated
   async getUserDetails(
     @Req() req: Request,
     @Res() res: Response,
@@ -168,5 +175,92 @@ export class UsersController {
       message: 'User updated successfully',
       user: updatedUser,
     });
+  }
+
+  @Delete('delete-image/:userID')
+  async deleteImage(
+    @Param('userID') userID: number,
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      // Fetch the user by userID
+      const user = await this.usersService.findUserById(userID);
+      if (!user) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'User not found' });
+      }
+
+      // Check if the user has an image URL
+      if (!user.image) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'No image found for this user',
+        });
+      }
+
+      // Delete the image from Cloudinary
+      const result = await this.cloudinaryService.deleteImage(user.image);
+
+      // Update the user's record to remove the image URL
+      await this.usersService.updateUser(userID, { image: null });
+
+      return res.status(HttpStatus.OK).json({
+        message: 'Image deleted successfully',
+        result,
+      });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to delete image',
+        error: error.message,
+      });
+    }
+  }
+
+  @Public()
+  @Put('update-image/:userID')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateImage(
+    @Param('userID') userID: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res: Response,
+  ): Promise<Response> {
+    try {
+      if (!file) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'No file uploaded',
+        });
+      }
+
+      // Fetch the user by userID
+      const user = await this.usersService.findUserById(userID);
+      if (!user) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json({ message: 'User not found' });
+      }
+
+      // Delete the existing image from Cloudinary if it exists
+      if (user.image) {
+        await this.cloudinaryService.deleteImage(user.image);
+      }
+
+      // Upload the new image to Cloudinary
+      const uploadResult = await this.cloudinaryService.uploadImage(file);
+
+      // Update the user's record with the new image URL
+      await this.usersService.updateUser(userID, { image: uploadResult.url });
+
+      return res.status(HttpStatus.OK).json({
+        message: 'Image updated successfully',
+        imageUrl: uploadResult.url,
+      });
+    } catch (error) {
+      console.error('Error updating image:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to update image',
+        error: error.message,
+      });
+    }
   }
 }
