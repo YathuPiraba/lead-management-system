@@ -59,15 +59,62 @@ export class UsersController {
     const { accessToken, refreshToken, isFirstLogin } =
       await this.usersService.login(loginDto);
 
-    // Set refresh token in cookies
+    // Set refresh token in cookies with additional security features
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true, // Prevent access by JavaScript
+      secure: process.env.SECURE_COOKIE === 'true', // Set to true if using HTTPS
+      // sameSite: process.env.SAME_SITE || 'none', // Set SameSite policy
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
+      domain: process.env.COOKIE_DOMAIN || '', // You can specify domain here if needed
     });
+
     res.status(HttpStatus.OK).json({
       accessToken,
       isFirstLogin,
     });
+  }
+
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const refreshToken = req.cookies['refreshToken'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token found');
+    }
+
+    // Invalidate the refresh token in Redis
+    const userId = await this.redis.get(refreshToken);
+    if (userId) {
+      await this.redis.del(`refresh_token:${userId}`); // Remove the refresh token from Redis
+    }
+
+    // Remove the refresh token from cookies
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.SECURE_COOKIE === 'true', // Check if secure cookie should be used
+      // sameSite: process.env.SAME_SITE || 'none', // Configurable SameSite value
+    });
+
+    res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
+  }
+
+  @Post('refresh')
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies['refreshToken']; // Access refresh token from request cookies
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
+    const userId = await this.redis.get(refreshToken); // Get user ID from Redis
+    if (!userId) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    // Generate a new access token
+    const accessToken = this.jwtService.sign({ id: userId });
+
+    return res.status(HttpStatus.OK).json({ accessToken });
   }
 
   @Post('change-password')
@@ -135,25 +182,6 @@ export class UsersController {
       message: 'User details fetched successfully',
       user: userWithoutPassword,
     });
-  }
-
-  @Post('refresh')
-  async refresh(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies['refreshToken']; // Access refresh token from request cookies
-
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
-    }
-
-    const userId = await this.redis.get(refreshToken); // Get user ID from Redis
-    if (!userId) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    // Generate a new access token
-    const accessToken = this.jwtService.sign({ id: userId });
-
-    return res.status(HttpStatus.OK).json({ accessToken });
   }
 
   @Put('update_user/:id')
