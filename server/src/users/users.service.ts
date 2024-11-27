@@ -139,9 +139,11 @@ export class UsersService {
   }
 
   async login(loginDto: LoginDto): Promise<{
-    accessToken: string;
-    refreshToken: string;
+    accessToken?: string;
+    refreshToken?: string;
+    temporaryToken?: string;
     isFirstLogin: boolean;
+    message: string;
   }> {
     const user = await this.userRepository.findOne({
       where: [{ userName: loginDto.userName }],
@@ -160,6 +162,25 @@ export class UsersService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Check if it's the first login
+    if (user.isFirstLogin) {
+      const temporaryPayload = {
+        sub: user.id,
+        username: user.userName,
+        isFirstLogin: true,
+      };
+
+      const temporaryToken = this.jwtService.sign(temporaryPayload, {
+        expiresIn: '15m',
+      });
+
+      return {
+        temporaryToken,
+        isFirstLogin: true,
+        message:
+          'Login successful but please change your password for security.',
+      };
+    }
     // Generate tokens with isFirstLogin in payload
     const payload = {
       sub: user.id,
@@ -167,7 +188,7 @@ export class UsersService {
       isFirstLogin: user.isFirstLogin,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     // Store refresh token in Redis
@@ -182,6 +203,7 @@ export class UsersService {
       accessToken,
       refreshToken,
       isFirstLogin: user.isFirstLogin,
+      message: 'Login successful',
     };
   }
 
@@ -198,10 +220,10 @@ export class UsersService {
     const payload = {
       sub: user.id,
       username: user.userName,
-      isFirstLogin: false, // After password change, this will always be false
+      isFirstLogin: false,
     };
 
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     // Update refresh token in Redis
@@ -254,7 +276,7 @@ export class UsersService {
   async findUserById(id: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['role'], // Include related data as needed
+      relations: ['role'],
     });
 
     if (!user) {

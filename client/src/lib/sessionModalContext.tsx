@@ -1,6 +1,6 @@
 // sessionModalContext.tsx
 import React, { createContext, useContext, useState, useCallback } from "react";
-import SessionExpirationModal from "./SessionExpirationModal";
+import SessionExpirationModal from "../components/SessionExpirationModal";
 
 interface SessionModalContextType {
   showSessionModal: () => void;

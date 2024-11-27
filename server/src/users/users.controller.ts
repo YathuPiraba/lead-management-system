@@ -55,22 +55,47 @@ export class UsersController {
 
   @Public()
   @Post('login')
-  async login(@Body() loginDto: LoginDto, @Res() res: Response): Promise<void> {
-    const { accessToken, refreshToken, isFirstLogin } =
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res() res: Response,
+  ): Promise<Response> {
+    const { accessToken, refreshToken, temporaryToken, isFirstLogin, message } =
       await this.usersService.login(loginDto);
 
-    // Set refresh token in cookies with additional security features
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.SECURE_COOKIE === 'true',
-      sameSite: (process.env.SAME_SITE || 'none') as 'none' | 'lax' | 'strict', // Type assertion here
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: process.env.COOKIE_DOMAIN || '',
-    });
+    // If first login, return temporary token for password change
+    if (isFirstLogin) {
+      return res.status(HttpStatus.OK).json({
+        isFirstLogin,
+        message,
+        temporaryToken,
+      });
+    }
 
-    res.status(HttpStatus.OK).json({
-      accessToken,
+    // If accessToken and refreshToken are present, set the cookies
+    if (accessToken && refreshToken) {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.SECURE_COOKIE === 'true',
+        sameSite: (process.env.SAME_SITE || 'none') as
+          | 'none'
+          | 'lax'
+          | 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        domain: process.env.COOKIE_DOMAIN || '',
+      });
+
+      // Send the successful login response with tokens
+      return res.status(HttpStatus.OK).json({
+        accessToken,
+        isFirstLogin,
+        message: 'Login successful',
+      });
+    }
+
+    // If no access token or refresh token, send the isFirstLogin and message only
+    return res.status(HttpStatus.OK).json({
       isFirstLogin,
+      message,
     });
   }
 
@@ -134,7 +159,6 @@ export class UsersController {
         .json({ message: 'User not found' });
     }
 
-    // Remove the password field before returning the user details
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
 
@@ -162,7 +186,13 @@ export class UsersController {
 
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          maxAge: 7 * 24 * 60 * 60 * 1000,
+          secure: process.env.SECURE_COOKIE === 'true',
+          sameSite: (process.env.SAME_SITE || 'none') as
+            | 'none'
+            | 'lax'
+            | 'strict',
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+          domain: process.env.COOKIE_DOMAIN || '',
         });
 
         return res.status(HttpStatus.OK).json({
