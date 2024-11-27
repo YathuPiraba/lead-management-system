@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import apiClient, { handleApiResponse, ApiError } from "@/lib/axios";
+import apiClient, {
+  handleApiResponse,
+  ApiError,
+  TOKEN_COOKIE_NAME,
+} from "@/lib/axios";
+import Cookies from "js-cookie";
 
 // Types
 interface User {
@@ -103,6 +108,7 @@ export const useAuthStore = create<AuthState>()(
               lastActivity: Date.now(),
             });
           } else if (accessToken) {
+            Cookies.set(TOKEN_COOKIE_NAME, accessToken);
             set({
               isAuthenticated: true,
               temporaryToken: null,
@@ -122,6 +128,7 @@ export const useAuthStore = create<AuthState>()(
           throw error;
         }
       },
+
       changePassword: async (currentPassword: string, newPassword: string) => {
         set({ isLoading: true });
         try {
@@ -139,6 +146,7 @@ export const useAuthStore = create<AuthState>()(
           );
 
           if (response.accessToken) {
+            Cookies.set(TOKEN_COOKIE_NAME, response.accessToken);
             set({
               isAuthenticated: true,
               temporaryToken: null,
@@ -189,6 +197,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       resetState: () => {
+        Cookies.remove(TOKEN_COOKIE_NAME);
         set({
           user: null,
           isAuthenticated: false,

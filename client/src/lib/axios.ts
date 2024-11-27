@@ -38,7 +38,7 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 
 // Constants
 const MAX_RETRY_ATTEMPTS = 3;
-const TOKEN_COOKIE_NAME = "access_token";
+export const TOKEN_COOKIE_NAME = "access_token";
 const REFRESH_ENDPOINT = "/refresh";
 
 // Event for session expiration
