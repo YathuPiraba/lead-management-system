@@ -1,4 +1,6 @@
 import React from "react";
+import { useAuth } from "@/stores/auth-store"; // Assuming Zustand store
+import { useRouter } from "next/router"; // Use Next.js useRouter
 
 interface SessionExpirationModalProps {
   isOpen: boolean;
@@ -9,8 +11,18 @@ const SessionExpirationModal = ({
   isOpen,
   onClose,
 }: SessionExpirationModalProps) => {
-  const handleRedirect = () => {
-    window.location.href = "/login";
+  const { logout } = useAuth(); // Access logout from Zustand store
+  const router = useRouter();
+
+  const handleRedirect = async () => {
+    try {
+      // Log the user out
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+    // Use Next.js router to redirect to login page
+    router.push("/"); 
     onClose();
   };
 
