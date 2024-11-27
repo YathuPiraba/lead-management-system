@@ -61,11 +61,11 @@ export class UsersController {
 
     // Set refresh token in cookies with additional security features
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true, // Prevent access by JavaScript
-      secure: process.env.SECURE_COOKIE === 'true', // Set to true if using HTTPS
-      // sameSite: process.env.SAME_SITE || 'none', // Set SameSite policy
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days expiration
-      domain: process.env.COOKIE_DOMAIN || '', // You can specify domain here if needed
+      httpOnly: true,
+      secure: process.env.SECURE_COOKIE === 'true',
+      sameSite: (process.env.SAME_SITE || 'none') as 'none' | 'lax' | 'strict', // Type assertion here
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: process.env.COOKIE_DOMAIN || '',
     });
 
     res.status(HttpStatus.OK).json({
@@ -91,8 +91,8 @@ export class UsersController {
     // Remove the refresh token from cookies
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.SECURE_COOKIE === 'true', // Check if secure cookie should be used
-      // sameSite: process.env.SAME_SITE || 'none', // Configurable SameSite value
+      secure: process.env.SECURE_COOKIE === 'true',
+      sameSite: (process.env.SAME_SITE || 'none') as 'none' | 'lax' | 'strict',
     });
 
     res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
@@ -115,6 +115,33 @@ export class UsersController {
     const accessToken = this.jwtService.sign({ id: userId });
 
     return res.status(HttpStatus.OK).json({ accessToken });
+  }
+
+  @Get('user-details')
+  @UseGuards(JwtAuthGuard) // Use guard to ensure the user is authenticated
+  async getUserDetails(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<Response> {
+    const userId = (req as any).user.id;
+
+    // Fetch user details
+    const user = await this.usersService.findUserById(userId);
+
+    if (!user) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'User not found' });
+    }
+
+    // Remove the password field before returning the user details
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = user;
+
+    return res.status(HttpStatus.OK).json({
+      message: 'User details fetched successfully',
+      user: userWithoutPassword,
+    });
   }
 
   @Post('change-password')
@@ -155,33 +182,6 @@ export class UsersController {
       }
       throw error;
     }
-  }
-
-  @Get('user-details')
-  @UseGuards(JwtAuthGuard) // Use guard to ensure the user is authenticated
-  async getUserDetails(
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<Response> {
-    const userId = (req as any).user.id;
-
-    // Fetch user details
-    const user = await this.usersService.findUserById(userId);
-
-    if (!user) {
-      return res
-        .status(HttpStatus.NOT_FOUND)
-        .json({ message: 'User not found' });
-    }
-
-    // Remove the password field before returning the user details
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
-
-    return res.status(HttpStatus.OK).json({
-      message: 'User details fetched successfully',
-      user: userWithoutPassword,
-    });
   }
 
   @Put('update_user/:id')

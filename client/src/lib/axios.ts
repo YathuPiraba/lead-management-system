@@ -12,7 +12,8 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     public message: string,
-    public data?: unknown
+    public data?: unknown,
+    public code?: string
   ) {
     super(message);
     this.name = "ApiError";
@@ -24,9 +25,9 @@ export interface ApiResponse<T = unknown> {
   data: T;
   message?: string;
   status: number;
+  code?: string;
 }
 
-// Extended config interface, compatible with Axios' InternalAxiosRequestConfig
 interface CustomAxiosRequestConfig extends AxiosRequestConfig {
   isFormData?: boolean;
   skipAuthRefresh?: boolean;
@@ -40,38 +41,41 @@ const MAX_RETRY_ATTEMPTS = 3;
 const TOKEN_COOKIE_NAME = "access_token";
 const REFRESH_ENDPOINT = "/refresh";
 
+// Event for session expiration
+export const SESSION_EXPIRED_EVENT = "session:expired";
+
+const dispatchSessionExpired = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+  }
+};
+
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000, // 10 second timeout
+  timeout: 10000,
   withCredentials: true,
 });
 
-// Request interceptor
 apiClient.interceptors.request.use(
   (config: CustomAxiosRequestConfig) => {
     const token = Cookies.get(TOKEN_COOKIE_NAME);
-
-    // Ensure headers are defined
     config.headers = config.headers || ({} as AxiosRequestHeaders);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Set Content-Type based on request type
     if (config.isFormData) {
       config.headers["Content-Type"] = "multipart/form-data";
     } else {
       config.headers["Content-Type"] = "application/json";
     }
 
-    // Initialize retry count if undefined
     config.retryCount = config.retryCount || 0;
-
     return config;
   },
   (error: AxiosError) => {
-    toast.error("Request configuration failed. Please try again."); // Show error toast
+    toast.error("Request configuration failed. Please try again.");
     return Promise.reject(
       new ApiError(
         error.response?.status || 500,
@@ -82,19 +86,17 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
+  async (error: AxiosError<ApiResponse>) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
-    // Handle network errors
     if (!error.response) {
-      toast.error("Network error occurred. Please check your connection."); // Show error toast
+      toast.error("Network error occurred. Please check your connection.");
       return Promise.reject(new ApiError(500, "Network error occurred", error));
     }
 
-    // Handle rate limiting (HTTP 429)
+    // Handle rate limiting
     if (error.response.status === 429) {
       const retryAfter = error.response.headers["retry-after"];
       if (retryAfter && originalRequest.retryCount! < MAX_RETRY_ATTEMPTS) {
@@ -106,53 +108,71 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle authentication errors (HTTP 401)
-    if (
-      error.response.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.skipAuthRefresh
-    ) {
-      originalRequest._retry = true;
+    // Check if this is a session expiration error
+    const isSessionExpired =
+      error.response.data?.code === "TOKEN_EXPIRED" ||
+      error.response.data?.message?.toLowerCase().includes("session expired");
 
-      try {
-        const response = await axios.post<ApiResponse<{ accessToken: string }>>(
-          `${process.env.NEXT_PUBLIC_API_URL}${REFRESH_ENDPOINT}`,
-          {},
-          { withCredentials: true }
-        );
-
-        const { accessToken } = response.data.data;
-        Cookies.set(TOKEN_COOKIE_NAME, accessToken);
-
-        originalRequest.headers!.Authorization = `Bearer ${accessToken}`;
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        Cookies.remove(TOKEN_COOKIE_NAME);
-        toast.error("Authentication failed. Please log in again.");
-
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
-
+    // Handle authentication errors
+    if (error.response.status === 401) {
+      // If it's a login attempt, don't show session expired modal
+      if (originalRequest.url?.includes("/login")) {
         return Promise.reject(
-          new ApiError(401, "Authentication failed", refreshError)
+          new ApiError(
+            401,
+            error.response.data?.message || "Invalid credentials"
+          )
         );
+      }
+
+      // For session expiration
+      if (
+        isSessionExpired &&
+        !originalRequest._retry &&
+        !originalRequest.skipAuthRefresh
+      ) {
+        originalRequest._retry = true;
+
+        try {
+          const response = await axios.post<
+            ApiResponse<{ accessToken: string }>
+          >(
+            `${process.env.NEXT_PUBLIC_API_URL}${REFRESH_ENDPOINT}`,
+            {},
+            { withCredentials: true }
+          );
+
+          const { accessToken } = response.data.data;
+          Cookies.set(TOKEN_COOKIE_NAME, accessToken);
+          originalRequest.headers!.Authorization = `Bearer ${accessToken}`;
+          return apiClient(originalRequest);
+        } catch (refreshError) {
+          Cookies.remove(TOKEN_COOKIE_NAME);
+          dispatchSessionExpired();
+          return Promise.reject(
+            new ApiError(
+              401,
+              "Session expired",
+              refreshError,
+              "SESSION_EXPIRED"
+            )
+          );
+        }
       }
     }
 
-    // Handle other types of errors
-    toast.error("An error occurred. Please try again later."); // Show error toast
+    // Handle other errors
     return Promise.reject(
       new ApiError(
-        error.response?.status || 500,
-        "An error occurred",
-        error.response?.data
+        error.response.status,
+        error.response.data?.message || "An error occurred",
+        error.response.data,
+        error.response.data?.code
       )
     );
   }
 );
 
-// Utility function for handling API responses
 export const handleApiResponse = async <T>(
   promise: Promise<AxiosResponse<ApiResponse<T>>>
 ): Promise<T> => {
@@ -161,10 +181,13 @@ export const handleApiResponse = async <T>(
     return response.data.data;
   } catch (error) {
     if (error instanceof ApiError) {
-      toast.error(error.message); // Show error toast with the message from ApiError
+      // Don't show toast for session expiration
+      if (error.code !== "SESSION_EXPIRED") {
+        toast.error(error.message);
+      }
       throw error;
     }
-    toast.error("Unknown error occurred. Please try again."); // Show generic error toast
+    toast.error("Unknown error occurred. Please try again.");
     throw new ApiError(500, "Unknown error occurred", error);
   }
 };
