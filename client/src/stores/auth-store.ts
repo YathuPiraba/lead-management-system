@@ -11,6 +11,10 @@ import Cookies from "js-cookie";
 interface User {
   id: number;
   userName: string;
+  role: {
+    id: number;
+    name: string;
+  };
   roleId: number;
 }
 
@@ -93,7 +97,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const response = await handleApiResponse<LoginResponse>(
-            apiClient.post("/login", { userName, password })
+            apiClient.post("/users/login", { userName, password })
           );
 
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -139,7 +143,7 @@ export const useAuthStore = create<AuthState>()(
 
           const response = await handleApiResponse<ChangePasswordResponse>(
             apiClient.post(
-              "/change-password",
+              "/users/change-password",
               { currentPassword, newPassword },
               { headers }
             )
@@ -167,7 +171,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         set({ isLoading: true });
         try {
-          await handleApiResponse(apiClient.post("/logout"));
+          await handleApiResponse(apiClient.post("/users/logout"));
         } finally {
           get().resetState();
           set({ isLoading: false });
@@ -178,11 +182,15 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const user = await handleApiResponse<User>(
-            apiClient.get("/user-details")
+            apiClient.get("/users/user-details")
           );
 
+          // Extract roleId from the role object and add to user state
           set({
-            user,
+            user: {
+              ...user,
+              roleId: user.role.id,
+            },
             isAuthenticated: true,
             isLoading: false,
             lastActivity: Date.now(),
