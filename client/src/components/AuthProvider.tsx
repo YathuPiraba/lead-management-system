@@ -12,11 +12,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isAuthenticated) {
       fetchUserDetails().catch((error) => {
         if (error.status === 401) {
-          router.push("/login");
+          router.push("/");
         }
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   return <>{children}</>;

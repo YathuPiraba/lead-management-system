@@ -1,7 +1,8 @@
+"use client";
+
 import React from "react";
 import { useAuth } from "@/stores/auth-store"; // Assuming Zustand store
-import { useRouter } from "next/router"; // Use Next.js useRouter
-
+import { useRouter } from "next/navigation";
 interface SessionExpirationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,7 +23,7 @@ const SessionExpirationModal = ({
       console.error("Logout failed:", error);
     }
     // Use Next.js router to redirect to login page
-    router.push("/"); 
+    router.push("/");
     onClose();
   };
 
