@@ -178,7 +178,9 @@ export const handleApiResponse = async <T>(
 ): Promise<T> => {
   try {
     const response = await promise;
-    return response.data.data;
+
+    // Check if the response structure matches what you expect
+    return response.data as T; // Returning response.data directly
   } catch (error) {
     if (error instanceof ApiError) {
       // Don't show toast for session expiration
@@ -191,5 +193,6 @@ export const handleApiResponse = async <T>(
     throw new ApiError(500, "Unknown error occurred", error);
   }
 };
+
 
 export default apiClient;

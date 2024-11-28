@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/auth-store";
-import { useChangePasswordModal } from "@/components/ChangePasswordModal";
+import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
 
 const LoginPage = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const { login, isAuthenticated } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { showModal, ChangePasswordModal } = useChangePasswordModal();
+  const { showModal } = useChangePasswordModal();
   const router = useRouter();
 
   // Redirect user if already authenticated

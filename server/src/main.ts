@@ -7,6 +7,13 @@ async function bootstrap() {
 
   // Get the API prefix from the configuration
   const configService = app.get(ConfigService);
+
+  app.enableCors({
+    origin: configService.get<string>('FRONTEND_URL') || '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true, // Enable credentials if using cookies
+  });
+
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');
   app.setGlobalPrefix(apiPrefix);
 

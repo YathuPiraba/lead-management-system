@@ -9,6 +9,8 @@ import Cookies from "js-cookie";
 
 // Types
 interface User {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any;
   id: number;
   userName: string;
   role: {
@@ -181,10 +183,12 @@ export const useAuthStore = create<AuthState>()(
       fetchUserDetails: async () => {
         set({ isLoading: true });
         try {
-          const user = await handleApiResponse<User>(
+          const res = await handleApiResponse<User>(
             apiClient.get("/users/user-details")
           );
 
+          const user = res.user;
+          console.log(user, "kk");
           // Extract roleId from the role object and add to user state
           set({
             user: {
