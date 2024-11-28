@@ -10,11 +10,10 @@ import { dataSourceOptions } from './data-source';
 import { StudentsModule } from './students/students.module';
 import { CallLogsModule } from './call-logs/call-logs.module';
 import { JwtModule } from '@nestjs/jwt';
-import { RedisModule } from '@nestjs-modules/ioredis';
-import { RedisModuleOptions } from '@nestjs-modules/ioredis';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { EnhancedRedisModule } from './users/redis.module';
 
 @Module({
   imports: [
@@ -44,20 +43,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
       },
       inject: [ConfigService],
     }),
-    RedisModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (
-        configService: ConfigService,
-      ): Promise<RedisModuleOptions> => ({
-        type: 'single',
-        options: {
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          password: configService.get<string>('REDIS_PASSWORD'),
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    EnhancedRedisModule,
     CloudinaryModule,
     UploadModule,
     UsersModule,
