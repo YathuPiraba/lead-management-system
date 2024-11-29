@@ -1,6 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "@fontsource/poppins"; /* Default weight */
+@import "@fontsource/roboto"; /* Default weight */
+
 
 body {
   font-family: Arial, Helvetica, sans-serif;

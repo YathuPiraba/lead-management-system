@@ -2,25 +2,32 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/auth-store";
 import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import coverpic from "@/assets/coverpic.jpg";
+import Image from "next/image";
 
 const LoginPage = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const { showModal } = useChangePasswordModal();
   const router = useRouter();
 
-  // Redirect user if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       router.push("/dashboard");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated, router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage("");
 
     try {
       const response = await login(userName, password);
@@ -31,58 +38,112 @@ const LoginPage = () => {
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage("Invalid credentials or something went wrong.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 className="text-2xl font-semibold mb-4 text-center">Login</h2>
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              name="userName"
-              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              required
-            />
+    <div className="flex h-screen bg-blue-300 items-center justify-center">
+      <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl overflow-hidden h-[90vh]">
+        <div className="flex flex-col lg:flex-row h-full">
+          {/* Left Section with Image */}
+          <div className="hidden sm:flex lg:w-2/5 bg-white items-center justify-center rounded-l-2xl h-full">
+            <div className="w-[85.666667%] h-[94.333333%] overflow-hidden rounded-xl shadow-md">
+              <Image
+                src={coverpic}
+                alt="Student with books"
+                className="object-cover w-full h-full"
+              />
+            </div>
           </div>
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+
+          {/* Right Section with Login Form */}
+          <div className="w-full lg:w-3/5 flex justify-center items-center h-full">
+            <div className="w-full max-w-md py-6 px-4 rounded-lg">
+              {/* Logo */}
+              <div className="flex justify-start items-center gap-5 mb-6">
+                <Image
+                  src="https://res.cloudinary.com/dytx4wqfa/image/upload/v1728032282/pnfqgpmqybjcrlctedp0.jpg"
+                  alt="Company Logo"
+                  width={68}
+                  height={68}
+                  className="h-auto w-16 rounded-lg"
+                />
+                <h2 className="text-4xl mt-4 font-poppins tracking-wider font-bold text-gray-900 mb-2">
+                  IMB Connect
+                </h2>
+              </div>
+
+              {/* Header */}
+              <div className="text-justify mb-4">
+                <p className="text-gray-600 text-sm font-roboto">
+                  Streamline student management and track leads, progress, and
+                  insights with IMB Connect.
+                </p>
+              </div>
+
+              {/* Login Form */}
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    type="text"
+                    id="username"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="Enter your username"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="********"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-end font-roboto">
+                  <a
+                    href="#"
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
+
+                {errorMessage && (
+                  <p className="text-red-600 text-sm text-center">
+                    {errorMessage}
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full font-poppins tracking-widest text-lg bg-blue-500 hover:bg-blue-600"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    "Login"
+                  )}
+                </Button>
+              </form>
+            </div>
           </div>
-          {errorMessage && (
-            <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
-          )}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Log In
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

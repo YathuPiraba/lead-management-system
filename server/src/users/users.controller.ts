@@ -100,6 +100,7 @@ export class UsersController {
   }
 
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
     const refreshToken = req.cookies['refreshToken'];
 
