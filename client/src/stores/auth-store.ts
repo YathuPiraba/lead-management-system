@@ -13,6 +13,7 @@ interface User {
   user: any;
   id: number;
   userName: string;
+  image?: string; 
   role: {
     id: number;
     name: string;
@@ -188,7 +189,6 @@ export const useAuthStore = create<AuthState>()(
           );
 
           const user = res.user;
-          console.log(user, "kk");
           // Extract roleId from the role object and add to user state
           set({
             user: {
