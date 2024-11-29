@@ -24,8 +24,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="border-b px-4 py-3">
+    <nav className="px-4 pt-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* Toggle Switch */}
         <div>
           <input
             type="checkbox"
@@ -49,11 +50,21 @@ const Navbar = () => {
         </div>
 
         {/* Navigation Items */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           {/* Notification Button */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-9 w-9" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative bg-white rounded-full h-12 w-12 p-3 shadow-md"
+          >
+            <Bell
+              className=" text-gray-600"
+              style={{
+                width: "18px",
+                height: "18px",
+              }}
+            />
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
               3
             </span>
           </Button>
@@ -61,8 +72,12 @@ const Navbar = () => {
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="rounded-full p-0" size="icon">
-                <Avatar className="h-8 w-8">
+              <Button
+                variant="ghost"
+                className="rounded-full p-2 bg-white shadow-md"
+                size="icon"
+              >
+                <Avatar className="h-12 w-12">
                   {user?.image ? (
                     <AvatarImage
                       src={user.image}
@@ -76,13 +91,13 @@ const Navbar = () => {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem className="flex items-center">
-                <User className="mr-2 h-4 w-4" />
+            <DropdownMenuContent align="end" className="w-32 mt-2 mr-2">
+              <DropdownMenuItem className="flex items-center cursor-pointer">
+                <User className="mr-2 h-4 w-4 " />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="flex items-center text-red-600"
+                className="flex items-center text-red-600 cursor-pointer"
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
