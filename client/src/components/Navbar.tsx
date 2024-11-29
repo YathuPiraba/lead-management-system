@@ -25,10 +25,7 @@ const Navbar = () => {
 
   return (
     <nav className="border-b px-4 py-3 bg-white">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Logo/Brand */}
-        <div className="text-xl font-bold">Brand</div>
-
+      <div className="max-w-7xl mx-auto flex items-center justify-end">
         {/* Navigation Items */}
         <div className="flex items-center space-x-4">
           {/* Notification Button */}
