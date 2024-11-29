@@ -14,10 +14,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useAuthStore } from "@/stores/auth-store";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuthStore();
+  const roleId = user?.roleId;
 
   const sidebarLinks = [
     {
@@ -40,11 +43,15 @@ const Sidebar = () => {
       href: "/students",
       icon: Users,
     },
-    {
-      title: "Staff",
-      href: "/staff",
-      icon: UserCircle,
-    },
+    ...(roleId === 1
+      ? [
+          {
+            title: "Staff",
+            href: "/staff",
+            icon: UserCircle,
+          },
+        ]
+      : []),
     {
       title: "Settings",
       href: "/settings",
