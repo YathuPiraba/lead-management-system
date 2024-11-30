@@ -23,8 +23,10 @@ const ChangePasswordModalComponent = ({
   isOpen,
   setIsOpen,
   onSubmit,
+  loading,
 }: {
   isOpen: boolean;
+  loading: boolean;
   setIsOpen: (value: boolean) => void;
   onSubmit: (data: PasswordChangeForm) => Promise<void>;
 }) => {
@@ -36,11 +38,11 @@ const ChangePasswordModalComponent = ({
   } = useForm<PasswordChangeForm>();
 
   return (
-    <Dialog 
-      open={isOpen} 
+    <Dialog
+      open={isOpen}
       onOpenChange={setIsOpen} // Prevent closing on outside click
     >
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-[425px]"
         onPointerDownOutside={(e) => e.preventDefault()} // Prevent closing on outside click
         onEscapeKeyDown={(e) => e.preventDefault()} // Prevent closing on Escape key
@@ -100,7 +102,11 @@ const ChangePasswordModalComponent = ({
             )}
           </div>
 
-          <Button htmlType="submit" className="w-full pwd-btn">
+          <Button
+            htmlType="submit"
+            className="w-full pwd-btn"
+            loading={loading}
+          >
             Change Password
           </Button>
         </form>
@@ -112,21 +118,26 @@ const ChangePasswordModalComponent = ({
 // Custom hook
 export const useChangePasswordModal = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { changePassword } = useAuth();
   const router = useRouter();
 
   const handleSubmit = useCallback(
     async (data: PasswordChangeForm) => {
+      setIsLoading(true);
       try {
         await changePassword(data.currentPassword, data.newPassword);
         setIsOpen(false);
-        toast.success("Password changed successfully")
+        toast.success("Password changed successfully");
         router.push("/dashboard");
       } catch (error) {
         console.error("Failed to change password:", error);
+      } finally {
+        setIsLoading(false);
       }
     },
-    [changePassword, router]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [changePassword]
   );
 
   const ChangePasswordModal = useCallback(
@@ -135,8 +146,10 @@ export const useChangePasswordModal = () => {
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         onSubmit={handleSubmit}
+        loading={isLoading}
       />
     ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isOpen, handleSubmit]
   );
 
