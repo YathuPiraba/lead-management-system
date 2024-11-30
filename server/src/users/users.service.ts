@@ -188,8 +188,14 @@ export class UsersService {
       isFirstLogin: user.isFirstLogin,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+    });
 
     // Store refresh token in Redis
     await this.redis.set(

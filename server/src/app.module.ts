@@ -13,7 +13,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { EnhancedRedisModule } from './users/redis.module';
+import { EnhancedRedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { EnhancedRedisModule } from './users/redis.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const secret = configService.get<string>('SECRET_KEY');
+        const secret = configService.get<string>('JWT_ACCESS_SECRET');
 
         if (!secret) {
           throw new Error('JWT secret key is not configured');

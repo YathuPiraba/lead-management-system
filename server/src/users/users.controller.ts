@@ -27,6 +27,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { Public } from 'src/decorators/public.decorator';
+import { ConfigService } from '@nestjs/config';
+import { TokenService } from 'src/auth/token.service';
 
 @Controller('users')
 export class UsersController {
@@ -34,6 +36,8 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly tokenService: TokenService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -75,13 +79,11 @@ export class UsersController {
     if (accessToken && refreshToken) {
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.SECURE_COOKIE === 'true',
-        sameSite: (process.env.SAME_SITE || 'none') as
-          | 'none'
-          | 'lax'
-          | 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        domain: process.env.COOKIE_DOMAIN || '',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: this.configService.get('SAME_SITE') || 'none',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+        domain: this.configService.get('COOKIE_DOMAIN') || undefined,
       });
 
       // Send the successful login response with tokens
@@ -91,12 +93,6 @@ export class UsersController {
         message: 'Login successful',
       });
     }
-
-    // If no access token or refresh token, send the isFirstLogin and message only
-    return res.status(HttpStatus.OK).json({
-      isFirstLogin,
-      message,
-    });
   }
 
   @Post('logout')
@@ -187,13 +183,11 @@ export class UsersController {
 
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure: process.env.SECURE_COOKIE === 'true',
-          sameSite: (process.env.SAME_SITE || 'none') as
-            | 'none'
-            | 'lax'
-            | 'strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-          domain: process.env.COOKIE_DOMAIN || '',
+          secure: this.configService.get('SECURE_COOKIE') === 'true',
+          sameSite: this.configService.get('SAME_SITE') || 'none',
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: '/',
+          domain: this.configService.get('COOKIE_DOMAIN') || undefined,
         });
 
         return res.status(HttpStatus.OK).json({

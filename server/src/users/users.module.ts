@@ -7,24 +7,30 @@ import { User } from './user.entity';
 import { Role } from './role.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { EmailService } from 'src/email/email.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { TokenService } from 'src/auth/token.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role]),
     CloudinaryModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRATION') || '1h',
-        },
-      }),
       inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get('JWT_ACCESS_SECRET'),
+        signOptions: { expiresIn: '15m' },
+      }),
     }),
   ],
-  providers: [UsersService, EmailService],
+  providers: [
+    UsersService,
+    EmailService,
+    JwtAuthGuard,
+    TokenService,
+    RedisService,
+  ],
   controllers: [UsersController],
 })
 export class UsersModule {}
