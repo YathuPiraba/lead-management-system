@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/auth-store";
 import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
-import { Button } from "@/components/ui/button";
+import { Button } from "antd";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
 import coverpic from "@/assets/coverpic.jpg";
 import Image from "next/image";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
+import "@/styles/app.css"
 
 const LoginPage = () => {
   const [userName, setUserName] = useState("");
@@ -39,6 +39,7 @@ const LoginPage = () => {
         toast.success(response.message);
         showModal();
       } else {
+        toast.success(response.message);
         router.push("/dashboard");
       }
     } catch (error) {
@@ -133,18 +134,11 @@ const LoginPage = () => {
                 )}
 
                 <Button
-                  type="submit"
-                  className="w-full font-poppins tracking-widest text-lg bg-blue-500 hover:bg-blue-600"
-                  disabled={isLoading}
+                  htmlType="submit"
+                  className="w-full font-poppins login-btn tracking-widest text-lg bg-blue-500 hover:bg-blue-600"
+                  loading={isLoading}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    "Login"
-                  )}
+                  {isLoading ?  "Logging in...":     "Login"}
                 </Button>
               </form>
             </div>

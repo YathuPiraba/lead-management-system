@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/stores/auth-store";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 interface PasswordChangeForm {
   currentPassword: string;

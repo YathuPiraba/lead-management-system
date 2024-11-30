@@ -5,7 +5,7 @@ import axios, {
   AxiosRequestHeaders,
 } from "axios";
 import Cookies from "js-cookie";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 // Custom error class for API errors
 export class ApiError extends Error {

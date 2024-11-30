@@ -1,0 +1,12 @@
+/* .css-dev-only-do-not-override-1pg9a38.ant-btn:hover {
+  background-color: #0b923d !important;
+  color: white !important;
+  border: none !important;
+} */
+
+
+.login-btn.css-dev-only-do-not-override-1x0dypw.ant-btn-default:hover {
+    background-color: rgb(17, 135, 219) !important;
+    color: white;
+    border-color: rgb(17, 135, 219) !important;
+  }
