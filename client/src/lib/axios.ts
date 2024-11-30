@@ -4,7 +4,6 @@ import axios, {
   AxiosResponse,
   AxiosRequestHeaders,
 } from "axios";
-import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
 
 // Custom error class for API errors
@@ -38,7 +37,7 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 
 // Constants
 const MAX_RETRY_ATTEMPTS = 3;
-export const TOKEN_COOKIE_NAME = "access_token";
+export const TOKEN_STORAGE_KEY = "access_token";
 const REFRESH_ENDPOINT = "/refresh";
 
 // Event for session expiration
@@ -58,7 +57,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config: CustomAxiosRequestConfig) => {
-    const token = Cookies.get(TOKEN_COOKIE_NAME);
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
     config.headers = config.headers || ({} as AxiosRequestHeaders);
 
     if (token) {
@@ -143,11 +142,11 @@ apiClient.interceptors.response.use(
           );
 
           const { accessToken } = response.data.data;
-          Cookies.set(TOKEN_COOKIE_NAME, accessToken);
+          localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
           originalRequest.headers!.Authorization = `Bearer ${accessToken}`;
           return apiClient(originalRequest);
         } catch (refreshError) {
-          Cookies.remove(TOKEN_COOKIE_NAME);
+          localStorage.removeItem(TOKEN_STORAGE_KEY);
           dispatchSessionExpired();
           return Promise.reject(
             new ApiError(
@@ -193,6 +192,5 @@ export const handleApiResponse = async <T>(
     throw new ApiError(500, "Unknown error occurred", error);
   }
 };
-
 
 export default apiClient;

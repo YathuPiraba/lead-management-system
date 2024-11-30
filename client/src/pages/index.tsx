@@ -23,7 +23,7 @@ const LoginPage = () => {
       router.push("/dashboard");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -137,7 +137,7 @@ const LoginPage = () => {
                   className="w-full font-poppins login-btn tracking-widest text-lg bg-blue-500 hover:bg-blue-600"
                   loading={isLoading}
                 >
-                  {isLoading ?  "Logging in...":     "Login"}
+                  {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </form>
             </div>

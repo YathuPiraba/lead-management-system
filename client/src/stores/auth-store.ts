@@ -3,17 +3,15 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import apiClient, {
   handleApiResponse,
   ApiError,
-  TOKEN_COOKIE_NAME,
+  TOKEN_STORAGE_KEY,
 } from "@/lib/axios";
-import Cookies from "js-cookie";
 
 // Types
 interface User {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any;
+  user: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   id: number;
   userName: string;
-  image?: string; 
+  image?: string;
   role: {
     id: number;
     name: string;
@@ -53,7 +51,7 @@ interface AuthState {
 }
 
 // Constants
-const SESSION_TIMEOUT = 60 * 60 * 1000; // 30 minutes
+const SESSION_TIMEOUT = 60 * 60 * 1000; // 60 minutes
 const STORAGE_KEY = "auth-storage";
 
 // Custom storage implementation with security checks
@@ -103,8 +101,7 @@ export const useAuthStore = create<AuthState>()(
             apiClient.post("/users/login", { userName, password })
           );
 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { isFirstLogin, message, accessToken, temporaryToken } =
+          const { isFirstLogin, accessToken, temporaryToken } =
             response;
 
           if (isFirstLogin && temporaryToken) {
@@ -115,7 +112,7 @@ export const useAuthStore = create<AuthState>()(
               lastActivity: Date.now(),
             });
           } else if (accessToken) {
-            Cookies.set(TOKEN_COOKIE_NAME, accessToken);
+            localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
             set({
               isAuthenticated: true,
               temporaryToken: null,
@@ -153,7 +150,7 @@ export const useAuthStore = create<AuthState>()(
           );
 
           if (response.accessToken) {
-            Cookies.set(TOKEN_COOKIE_NAME, response.accessToken);
+            localStorage.setItem(TOKEN_STORAGE_KEY, response.accessToken);
             set({
               isAuthenticated: true,
               temporaryToken: null,
@@ -189,7 +186,6 @@ export const useAuthStore = create<AuthState>()(
           );
 
           const user = res.user;
-          // Extract roleId from the role object and add to user state
           set({
             user: {
               ...user,
@@ -209,7 +205,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       resetState: () => {
-        Cookies.remove(TOKEN_COOKIE_NAME);
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
         set({
           user: null,
           isAuthenticated: false,

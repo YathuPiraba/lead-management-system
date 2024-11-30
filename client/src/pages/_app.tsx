@@ -1,17 +1,28 @@
+"use client";
 import "@/app/globals.css";
 import Layout from "@/components/Layout";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { Toaster } from "react-hot-toast";
-import "@/styles/app.css"
+import "@/styles/app.css";
+import { useAuth } from "@/stores/auth-store";
+import { useEffect } from "react";
 
 const MyApp = ({ Component, pageProps, router }: AppProps) => {
   const noLayoutPages = ["/"]; // Add more routes if needed
   const isLayoutExcluded = noLayoutPages.includes(router.pathname);
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated && !isLayoutExcluded) {
+      router.push("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   return (
     <>
-     <Toaster />
+      <Toaster />
       <Head>
         <link
           rel="icon"
