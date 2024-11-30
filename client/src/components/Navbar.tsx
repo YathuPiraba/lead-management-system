@@ -1,6 +1,5 @@
 import React from "react";
 import { useAuth } from "@/stores/auth-store";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,15 +8,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, LogOut, User } from "lucide-react";
+import { Button } from "antd";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-
-  console.log(user);
+  const router = useRouter();
 
   const handleLogout = async () => {
     try {
       await logout();
+      toast.success("Logged out Successfully");
+      router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -52,11 +55,7 @@ const Navbar = () => {
         {/* Navigation Items */}
         <div className="flex items-center space-x-6">
           {/* Notification Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative bg-white rounded-full h-12 w-12 p-3 shadow-md"
-          >
+          <Button className="relative bg-white rounded-full h-12 w-12 p-3 shadow-md">
             <Bell
               className=" text-gray-600"
               style={{
@@ -72,11 +71,7 @@ const Navbar = () => {
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="rounded-full p-2 bg-white shadow-md"
-                size="icon"
-              >
+              <Button className="rounded-full p-2 h-12 w-12 bg-white shadow-md">
                 <Avatar className="h-12 w-12">
                   {user?.image ? (
                     <AvatarImage
@@ -96,12 +91,13 @@ const Navbar = () => {
                 <User className="mr-2 h-4 w-4 " />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="flex items-center text-red-600 cursor-pointer"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
+              <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer">
+                <Button
+                  onClick={handleLogout}
+                  icon={<LogOut className="mr-2 h-4 w-4" />}
+                >
+                  Logout
+                </Button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "antd";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/stores/auth-store";
@@ -100,7 +100,7 @@ const ChangePasswordModalComponent = ({
             )}
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button htmlType="submit" className="w-full pwd-btn">
             Change Password
           </Button>
         </form>

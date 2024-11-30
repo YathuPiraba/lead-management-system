@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { Toaster } from "react-hot-toast";
-
+import "@/styles/app.css"
 
 const MyApp = ({ Component, pageProps, router }: AppProps) => {
   const noLayoutPages = ["/"]; // Add more routes if needed

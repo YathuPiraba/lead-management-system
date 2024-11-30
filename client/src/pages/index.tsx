@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import coverpic from "@/assets/coverpic.jpg";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
-import "@/styles/app.css"
 
 const LoginPage = () => {
   const [userName, setUserName] = useState("");

@@ -4,9 +4,14 @@
   border: none !important;
 } */
 
-
 .login-btn.css-dev-only-do-not-override-1x0dypw.ant-btn-default:hover {
-    background-color: rgb(17, 135, 219) !important;
+  background-color: rgb(17, 135, 219) !important;
+  color: white;
+  border-color: rgb(17, 135, 219) !important;
+}
+
+.pwd-btn.css-dev-only-do-not-override-1x0dypw.ant-btn-default:hover {
+    background-color: rgb(1, 0, 25) !important;
     color: white;
-    border-color: rgb(17, 135, 219) !important;
+    border-color: rgb(0, 1, 2) !important;
   }

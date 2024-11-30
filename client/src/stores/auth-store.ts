@@ -175,8 +175,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await handleApiResponse(apiClient.post("/users/logout"));
-        } finally {
           get().resetState();
+        } finally {
           set({ isLoading: false });
         }
       },
