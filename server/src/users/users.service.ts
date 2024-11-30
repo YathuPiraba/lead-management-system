@@ -48,7 +48,7 @@ export class UsersService {
     // Hash the password
     const hashedPassword = await argon2.hash(oneTimePassword);
 
-    const roleId = 2;
+    const roleId = 1;
 
     // Find the role
     const role = await this.roleRepository.findOne({

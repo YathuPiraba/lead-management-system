@@ -2,6 +2,7 @@ import "@/app/globals.css";
 import Layout from "@/components/Layout";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { Toaster } from "sonner";
 
 const MyApp = ({ Component, pageProps, router }: AppProps) => {
   const noLayoutPages = ["/"]; // Add more routes if needed
@@ -9,6 +10,7 @@ const MyApp = ({ Component, pageProps, router }: AppProps) => {
 
   return (
     <>
+     <Toaster position="top-center" richColors />
       <Head>
         <link
           rel="icon"

@@ -975,6 +975,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/cookie-parser@^1.4.8":
+  version "1.4.8"
+  resolved "https://registry.yarnpkg.com/@types/cookie-parser/-/cookie-parser-1.4.8.tgz#d2215e7915f624fbfe4233da8f063f511679f1f3"
+  integrity sha512-l37JqFrOJ9yQfRQkljb41l0xVphc7kg5JTjjr+pLRZ0IyZ49V4BQ8vbF4Ut2C2e+WH4al3xD3ZwYwIUfnbT4NQ==
+
 "@types/cookie@^0.4.1":
   version "0.4.1"
   resolved "https://registry.npmjs.org/@types/cookie/-/cookie-0.4.1.tgz"
@@ -2145,7 +2150,7 @@ convert-source-map@^2.0.0:
 
 cookie-parser@^1.4.7:
   version "1.4.7"
-  resolved "https://registry.yarnpkg.com/cookie-parser/-/cookie-parser-1.4.7.tgz#e2125635dfd766888ffe90d60c286404fa0e7b26"
+  resolved "https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.7.tgz"
   integrity sha512-nGUvgXnotP3BsjiLX2ypbQnWoGUPIIfHQNZkkC668ntrzGWEZVW70HDEB1qnNGMicPje6EttlIgzo51YSwNQGw==
   dependencies:
     cookie "0.7.2"
@@ -5018,6 +5023,7 @@ serve-static@1.16.2:
     class-transformer "^0.5.1"
     class-validator "^0.14.1"
     cloudinary "^2.5.0"
+    cookie-parser "^1.4.7"
     cors "^2.8.5"
     dotenv "^16.4.5"
     ioredis "^5.4.1"
@@ -5029,7 +5035,7 @@ serve-static@1.16.2:
     pg "^8.13.0"
     reflect-metadata "0.1.x"
     rxjs "^7.8.1"
-    server "file:../../../AppData/Local/Yarn/Cache/v6/npm-server-0.0.1-2f1a5593-0978-44db-b141-21ca9ca24d4b-1732944528752/node_modules/server"
+    server "file:../../../AppData/Local/Yarn/Cache/v6/npm-server-0.0.1-ab847bd3-3d37-436e-bc88-1cb2d10bb370-1732946231038/node_modules/server"
     socket.io "^4.8.0"
     typeorm "^0.3.20"
     webpack "^5.0.0"

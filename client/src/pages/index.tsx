@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import coverpic from "@/assets/coverpic.jpg";
 import Image from "next/image";
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const [userName, setUserName] = useState("");
@@ -15,14 +16,15 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
-  const { showModal } = useChangePasswordModal();
+  const { showModal, ChangePasswordModal } = useChangePasswordModal();
   const router = useRouter();
 
   useEffect(() => {
     if (isAuthenticated) {
       router.push("/dashboard");
     }
-  }, [isAuthenticated, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,10 +33,14 @@ const LoginPage = () => {
 
     try {
       const response = await login(userName, password);
+      console.log(response, "jj");
+
       if (response.isFirstLogin) {
+        toast.success(response.message);
         showModal();
+      } else {
+        router.push("/dashboard");
       }
-      router.push("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage("Invalid credentials or something went wrong.");
@@ -145,6 +151,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      <ChangePasswordModal />
     </div>
   );
 };

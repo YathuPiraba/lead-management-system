@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/stores/auth-store";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface PasswordChangeForm {
   currentPassword: string;
@@ -16,9 +18,16 @@ interface PasswordChangeForm {
   confirmPassword: string;
 }
 
-export const useChangePasswordModal = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { changePassword } = useAuth();
+// Separate the modal component outside the hook
+const ChangePasswordModalComponent = ({
+  isOpen,
+  setIsOpen,
+  onSubmit,
+}: {
+  isOpen: boolean;
+  setIsOpen: (value: boolean) => void;
+  onSubmit: (data: PasswordChangeForm) => Promise<void>;
+}) => {
   const {
     register,
     handleSubmit,
@@ -26,18 +35,16 @@ export const useChangePasswordModal = () => {
     watch,
   } = useForm<PasswordChangeForm>();
 
-  const onSubmit = async (data: PasswordChangeForm) => {
-    try {
-      await changePassword(data.currentPassword, data.newPassword);
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Failed to change password:", error);
-    }
-  };
-
-  const ChangePasswordModal = () => (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+  return (
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={setIsOpen} // Prevent closing on outside click
+    >
+      <DialogContent 
+        className="sm:max-w-[425px]"
+        onPointerDownOutside={(e) => e.preventDefault()} // Prevent closing on outside click
+        onEscapeKeyDown={(e) => e.preventDefault()} // Prevent closing on Escape key
+      >
         <DialogHeader>
           <DialogTitle>Change Your Password</DialogTitle>
         </DialogHeader>
@@ -100,9 +107,41 @@ export const useChangePasswordModal = () => {
       </DialogContent>
     </Dialog>
   );
+};
+
+// Custom hook
+export const useChangePasswordModal = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { changePassword } = useAuth();
+  const router = useRouter();
+
+  const handleSubmit = useCallback(
+    async (data: PasswordChangeForm) => {
+      try {
+        await changePassword(data.currentPassword, data.newPassword);
+        setIsOpen(false);
+        toast.success("Password changed successfully")
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Failed to change password:", error);
+      }
+    },
+    [changePassword, router]
+  );
+
+  const ChangePasswordModal = useCallback(
+    () => (
+      <ChangePasswordModalComponent
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        onSubmit={handleSubmit}
+      />
+    ),
+    [isOpen, handleSubmit]
+  );
 
   return {
-    showModal: () => setIsOpen(true),
+    showModal: useCallback(() => setIsOpen(true), []),
     ChangePasswordModal,
   };
 };
