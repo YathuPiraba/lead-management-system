@@ -21,6 +21,7 @@ import { EmailService } from 'src/email/email.service';
 import { generateOneTimePassword } from 'src/utils/generate-password';
 import { generateUsername } from 'src/utils/generate-username';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { TokenService } from 'src/auth/token.service';
 
 @Injectable()
 export class UsersService {
@@ -36,6 +37,7 @@ export class UsersService {
     private readonly configService: ConfigService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly emailService: EmailService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async register(
@@ -198,12 +200,7 @@ export class UsersService {
     });
 
     // Store refresh token in Redis
-    await this.redis.set(
-      `refresh_token:${user.id}`,
-      refreshToken,
-      'EX',
-      7 * 24 * 60 * 60,
-    );
+    await this.tokenService.storeRefreshToken(user.id, refreshToken);
 
     return {
       accessToken,
@@ -229,16 +226,17 @@ export class UsersService {
       isFirstLogin: false,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: '7d',
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+    });
 
     // Update refresh token in Redis
-    await this.redis.set(
-      `refresh_token:${user.id}`,
-      refreshToken,
-      'EX',
-      7 * 24 * 60 * 60,
-    );
+    await this.tokenService.storeRefreshToken(user.id, refreshToken);
 
     return { accessToken, refreshToken };
   }

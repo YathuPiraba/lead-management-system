@@ -133,15 +133,13 @@ apiClient.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
-          const response = await axios.post<
-            ApiResponse<{ accessToken: string }>
-          >(
+          const response = await axios.post<{ accessToken: string }>(
             `${process.env.NEXT_PUBLIC_API_URL}${REFRESH_ENDPOINT}`,
             {},
             { withCredentials: true }
           );
 
-          const { accessToken } = response.data.data;
+          const { accessToken } = response.data;
           localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
           originalRequest.headers!.Authorization = `Bearer ${accessToken}`;
           return apiClient(originalRequest);

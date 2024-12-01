@@ -32,8 +32,6 @@ const LoginPage = () => {
 
     try {
       const response = await login(userName, password);
-      console.log(response, "jj");
-
       if (response.isFirstLogin) {
         toast.success(response.message);
         showModal();

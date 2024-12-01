@@ -95,8 +95,8 @@ export class UsersController {
     }
   }
 
+  @Public()
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
     const refreshToken = req.cookies['refreshToken'];
 
@@ -105,16 +105,19 @@ export class UsersController {
     }
 
     // Invalidate the refresh token in Redis
-    const userId = await this.redis.get(refreshToken);
-    if (userId) {
-      await this.redis.del(`refresh_token:${userId}`); // Remove the refresh token from Redis
-    }
+    const payload = this.jwtService.verify(refreshToken, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+    });
+
+    await this.tokenService.invalidateRefreshToken(payload.sub);
 
     // Remove the refresh token from cookies
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.SECURE_COOKIE === 'true',
-      sameSite: (process.env.SAME_SITE || 'none') as 'none' | 'lax' | 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: this.configService.get('SAME_SITE') || 'none',
+      path: '/',
+      domain: this.configService.get('COOKIE_DOMAIN') || undefined,
     });
 
     res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
@@ -123,21 +126,19 @@ export class UsersController {
   @Public()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies['refreshToken']; // Access refresh token from request cookies
+    const refreshToken = req.cookies['refreshToken'];
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');
     }
 
-    const userId = await this.redis.get(refreshToken); // Get user ID from Redis
-    if (!userId) {
-      throw new UnauthorizedException('Invalid refresh token');
+    try {
+      const { accessToken } =
+        await this.tokenService.refreshAccessToken(refreshToken);
+      return res.status(200).json({ accessToken });
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
     }
-
-    // Generate a new access token
-    const accessToken = this.jwtService.sign({ id: userId });
-
-    return res.status(HttpStatus.OK).json({ accessToken });
   }
 
   @Get('user-details')
