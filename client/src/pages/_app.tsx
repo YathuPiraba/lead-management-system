@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import "@/styles/app.css";
 import { useAuth } from "@/stores/auth-store";
 import { useEffect } from "react";
+import { SessionModalProvider } from "@/contexts/sessionModalContext";
 
 const MyApp = ({ Component, pageProps, router }: AppProps) => {
   const noLayoutPages = ["/"]; // Add more routes if needed
@@ -33,9 +34,11 @@ const MyApp = ({ Component, pageProps, router }: AppProps) => {
       {isLayoutExcluded ? (
         <Component {...pageProps} />
       ) : (
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <SessionModalProvider>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </SessionModalProvider>
       )}
     </>
   );
