@@ -11,7 +11,26 @@
 }
 
 .pwd-btn.css-dev-only-do-not-override-1x0dypw.ant-btn-default:hover {
-    background-color: rgb(1, 0, 25) !important;
-    color: white;
-    border-color: rgb(0, 1, 2) !important;
-  }
+  background-color: rgb(1, 0, 25) !important;
+  color: white;
+  border-color: rgb(0, 1, 2) !important;
+}
+
+/* Scrollbar styling */
+main::-webkit-scrollbar {
+  width: 8px; /* Set the width of the scrollbar */
+  height: 8px; /* Set the height of the scrollbar for horizontal scrolling */
+}
+
+main::-webkit-scrollbar-thumb {
+  background-color: #a0aec0; /* Set the color of the scrollbar thumb */
+  border-radius: 4px; /* Round the corners */
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background-color: #718096; /* Darken the thumb on hover */
+}
+
+main::-webkit-scrollbar-track {
+  background: #f7fafc; /* Set the background of the scrollbar track */
+}

@@ -27,7 +27,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="px-4 pt-3">
+    <nav className="px-7 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Toggle Switch */}
         <div>

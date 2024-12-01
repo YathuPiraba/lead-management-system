@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -16,8 +16,12 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useAuthStore } from "@/stores/auth-store";
 
-const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const pathname = usePathname();
   const { user } = useAuthStore();
   const roleId = user?.roleId;
@@ -62,7 +66,7 @@ const Sidebar = () => {
   return (
     <div
       className={cn(
-        "h-screen bg-white border-r transition-all duration-300 flex flex-col",
+        "h-full bg-white border-r transition-all duration-300 flex flex-col",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -75,14 +79,7 @@ const Sidebar = () => {
           alt="IBM Connect"
           className="h-8 w-8 object-contain"
         />
-        <span
-          className={cn(
-            "font-bold text-lg transition-opacity duration-300",
-            isCollapsed ? "opacity-0 hidden" : "opacity-100"
-          )}
-        >
-          IBM Connect
-        </span>
+        {!isCollapsed && <span className="font-bold text-lg">IBM Connect</span>}
       </div>
 
       {/* Navigation Links */}
@@ -96,22 +93,21 @@ const Sidebar = () => {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors",
+                "flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors relative group",
                 isActive
                   ? "bg-blue-50 text-blue-600"
                   : "text-gray-600 hover:bg-gray-100",
-                isCollapsed && "justify-center"
+                isCollapsed && "justify-center px-2"
               )}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
-              <span
-                className={cn(
-                  "transition-opacity duration-300",
-                  isCollapsed ? "opacity-0 hidden" : "opacity-100"
-                )}
-              >
-                {link.title}
-              </span>
+              {!isCollapsed && <span>{link.title}</span>}
+              {/* Tooltip for collapsed state */}
+              {isCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  {link.title}
+                </div>
+              )}
             </Link>
           );
         })}
@@ -122,7 +118,7 @@ const Sidebar = () => {
         <Button
           variant="ghost"
           className="w-full flex items-center justify-center"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={onToggle}
         >
           {isCollapsed ? (
             <ChevronRight className="h-5 w-5" />

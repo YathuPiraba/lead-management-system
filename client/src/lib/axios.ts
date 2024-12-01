@@ -38,7 +38,7 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 // Constants
 const MAX_RETRY_ATTEMPTS = 3;
 export const TOKEN_STORAGE_KEY = "access_token";
-const REFRESH_ENDPOINT = "/refresh";
+const REFRESH_ENDPOINT = "/users/refresh";
 
 // Event for session expiration
 export const SESSION_EXPIRED_EVENT = "session:expired";

@@ -120,6 +120,7 @@ export class UsersController {
     res.status(HttpStatus.OK).json({ message: 'Logged out successfully' });
   }
 
+  @Public()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies['refreshToken']; // Access refresh token from request cookies
