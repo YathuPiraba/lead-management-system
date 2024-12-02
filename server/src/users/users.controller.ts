@@ -49,12 +49,17 @@ export class UsersController {
     @UploadedFile() image: Express.Multer.File,
     @Res() res: Response,
   ): Promise<Response> {
-    await this.usersService.register(createUserDto, image); // Execute registration process
-
-    // Return a success message
-    return res.status(HttpStatus.OK).json({
-      message: 'Your username and password have been sent to your email.',
-    });
+    try {
+      await this.usersService.register(createUserDto, image);
+      return res.status(HttpStatus.OK).json({
+        message: `Staff username and password have been sent to staff's email.`,
+      });
+    } catch (error) {
+      console.error(error); // Log the error for debugging
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to register staff member. Please try again later.',
+      });
+    }
   }
 
   @Public()

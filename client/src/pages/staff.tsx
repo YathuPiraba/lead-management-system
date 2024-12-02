@@ -95,7 +95,7 @@ const StaffPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
+                {/* <TableHead>Role</TableHead> */}
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
@@ -108,7 +108,7 @@ const StaffPage = () => {
               {staffMembers.map((staff) => (
                 <TableRow key={staff.id}>
                   <TableCell className="font-medium">{staff.name}</TableCell>
-                  <TableCell>{staff.role}</TableCell>
+                  {/* <TableCell>{staff.role}</TableCell> */}
                   <TableCell>{staff.email}</TableCell>
                   <TableCell>{staff.phone}</TableCell>
                   <TableCell>

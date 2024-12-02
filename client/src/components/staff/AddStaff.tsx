@@ -12,9 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Loader, UserPlus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTheme } from "@/contexts/theme-context";
+import { registerStaff } from "@/lib/apiServices";
+import { toast } from "react-hot-toast";
 
 interface StaffFormData {
-  name: string;
+  firstName: string;
   email: string;
   contactNo: string;
   image?: File;
@@ -23,7 +25,7 @@ interface StaffFormData {
 const AddStaffDialog = () => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StaffFormData>({
-    name: "",
+    firstName: "",
     email: "",
     contactNo: "",
   });
@@ -36,7 +38,7 @@ const AddStaffDialog = () => {
     if (name === "image" && files && files[0]) {
       setFormData((prev) => ({
         ...prev,
-        [name]: files[0],
+        image: files[0],
       }));
     } else {
       setFormData((prev) => ({
@@ -51,7 +53,8 @@ const AddStaffDialog = () => {
     setError("");
     setLoading(true);
 
-    if (!formData.name || !formData.email || !formData.contactNo) {
+    // Basic validation
+    if (!formData.firstName || !formData.email || !formData.contactNo) {
       setError("Please fill in all required fields");
       setLoading(false);
       return;
@@ -64,12 +67,29 @@ const AddStaffDialog = () => {
       return;
     }
 
+    if (isNaN(Number(formData.contactNo))) {
+      setError("Contact number must be a valid number");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Simulate registration (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const payload = new FormData();
+      payload.append("firstName", formData.firstName);
+      payload.append("email", formData.email);
+      payload.append("contactNo", formData.contactNo);
+      if (formData.image) {
+        payload.append("image", formData.image);
+      }
+
+      const res = await registerStaff(payload);
+      const successMessage = res.message || "Staff member added successfully!";
+      toast.success(successMessage);
       setOpen(false);
-      setFormData({ name: "", email: "", contactNo: "" });
-    } catch {
+      setFormData({ firstName: "", email: "", contactNo: "" });
+    } catch (error) {
+      console.log(error);
+
       setError("Failed to register staff member. Please try again.");
     } finally {
       setLoading(false);
@@ -77,6 +97,7 @@ const AddStaffDialog = () => {
   };
 
   const { isDarkMode } = useTheme();
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -95,13 +116,13 @@ const AddStaffDialog = () => {
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">
+            <Label htmlFor="firstName">
               Name <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="name"
-              name="name"
-              value={formData.name}
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
               onChange={handleInputChange}
               placeholder="Enter staff name"
               required
@@ -130,6 +151,7 @@ const AddStaffDialog = () => {
             <Input
               id="contactNo"
               name="contactNo"
+              type="text"
               value={formData.contactNo}
               onChange={handleInputChange}
               placeholder="Enter contact number"
@@ -147,6 +169,7 @@ const AddStaffDialog = () => {
               type="file"
               accept="image/*"
               onChange={handleInputChange}
+              className="cursor-pointer"
             />
           </div>
 
@@ -171,10 +194,9 @@ const AddStaffDialog = () => {
                   Adding...
                 </div>
               ) : (
-                'Add Staff Member'
+                "Add Staff Member"
               )}
             </Button>
-
           </div>
         </form>
       </DialogContent>

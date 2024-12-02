@@ -3,10 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { getOTPEmailTemplate } from '../templates/otp-email.template';
 import { getStaffCredentialsTemplate } from 'src/templates/staff-credential.template';
+import { SentMessageInfo, Options } from 'nodemailer/lib/smtp-transport';
 
 @Injectable()
 export class EmailService {
-  private transporter;
+  private transporter: nodemailer.Transporter<SentMessageInfo, Options>;
 
   constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
@@ -41,11 +42,18 @@ export class EmailService {
     password: string,
     firstName: string,
   ): Promise<void> {
+    const loginUrl = this.configService.get('LOGIN_URL');
+
     const mailOptions = {
       from: this.configService.get('EMAIL_FROM'),
       to: email,
       subject: 'Your Staff Account Credentials',
-      html: getStaffCredentialsTemplate(username, password, firstName),
+      html: getStaffCredentialsTemplate(
+        username,
+        password,
+        firstName,
+        loginUrl,
+      ),
     };
 
     await this.transporter.sendMail(mailOptions);

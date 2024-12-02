@@ -15,21 +15,23 @@ export const getUserData = async (userId: string) => {
 };
 
 // Create a new user
-export const registerStaff = async (userData: {
-  name: string;
-  email: string;
-}) => {
+export const registerStaff = async (userData: FormData) => {
   try {
     const response = await apiClient.post<ApiResponse<{ user: string }>>(
       "/users/register_user",
-      userData
+      userData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
-    console.log(response);
     return response.data;
   } catch (error) {
     throw error; // Re-throw error for further handling by the caller
   }
 };
+
 
 // Update user data
 export const updateUser = async (
