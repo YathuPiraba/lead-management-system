@@ -88,7 +88,7 @@ const AddStaffDialog = () => {
       setOpen(false);
       setFormData({ firstName: "", email: "", contactNo: "" });
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       setError("Failed to register staff member. Please try again.");
     } finally {
