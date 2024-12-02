@@ -91,8 +91,7 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
     if (!error.response) {
-      toast.error("Network error occurred. Please check your connection.");
-      return Promise.reject(new ApiError(500, "Network error occurred", error));
+      return Promise.reject(new ApiError(500, "Network error occurred. Please check your connection.", error));
     }
 
     // Handle rate limiting

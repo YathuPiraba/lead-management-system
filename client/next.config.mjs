@@ -1,14 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-        remotePatterns: [
-          {
-            protocol: "https",
-            hostname: "res.cloudinary.com",
-            pathname: "/dytx4wqfa/**",
-          },
-        ],
+  transpilePackages: ['rc-util', 'antd', '@ant-design', 'rc-pagination', 'rc-picker'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/dytx4wqfa/**",
       },
+    ],
+  },
 };
 
 export default nextConfig;
