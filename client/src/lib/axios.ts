@@ -27,8 +27,8 @@ export interface ApiResponse<T = unknown> {
   code?: string;
 }
 
+// Simplified custom config without isFormData
 interface CustomAxiosRequestConfig extends AxiosRequestConfig {
-  isFormData?: boolean;
   skipAuthRefresh?: boolean;
   retryCount?: number;
   _retry?: boolean;
@@ -55,17 +55,23 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
+// Enhanced request interceptor with automatic content-type detection
 apiClient.interceptors.request.use(
   (config: CustomAxiosRequestConfig) => {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-    config.headers = config.headers || ({} as AxiosRequestHeaders);
+    config.headers = config.headers || {};
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    if (config.isFormData) {
+    // Automatic content-type detection
+    if (config.data instanceof FormData) {
       config.headers["Content-Type"] = "multipart/form-data";
+    } else if (config.data instanceof Blob) {
+      config.headers["Content-Type"] = config.data.type;
+    } else if (config.data instanceof ArrayBuffer) {
+      config.headers["Content-Type"] = "application/octet-stream";
     } else {
       config.headers["Content-Type"] = "application/json";
     }
@@ -91,7 +97,13 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
     if (!error.response) {
-      return Promise.reject(new ApiError(500, "Network error occurred. Please check your connection.", error));
+      return Promise.reject(
+        new ApiError(
+          500,
+          "Network error occurred. Please check your connection.",
+          error
+        )
+      );
     }
 
     // Handle rate limiting
@@ -140,7 +152,7 @@ apiClient.interceptors.response.use(
 
           const { accessToken } = response.data;
           localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
-          originalRequest.headers!.Authorization = `Bearer ${accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return apiClient(originalRequest);
         } catch (refreshError) {
           localStorage.removeItem(TOKEN_STORAGE_KEY);
@@ -174,9 +186,7 @@ export const handleApiResponse = async <T>(
 ): Promise<T> => {
   try {
     const response = await promise;
-
-    // Check if the response structure matches what you expect
-    return response.data as T; // Returning response.data directly
+    return response.data as T;
   } catch (error) {
     if (error instanceof ApiError) {
       // Don't show toast for session expiration
@@ -188,6 +198,21 @@ export const handleApiResponse = async <T>(
     toast.error("Unknown error occurred. Please try again.");
     throw new ApiError(500, "Unknown error occurred", error);
   }
+};
+
+// Helper method for making type-safe API requests
+export const createApiRequest = {
+  get: <T>(url: string, config?: Omit<AxiosRequestConfig, "url">) =>
+    handleApiResponse<T>(apiClient.get(url, config)),
+    
+  post: <T>(url: string, data?: unknown, config?: Omit<AxiosRequestConfig, "url">) =>
+    handleApiResponse<T>(apiClient.post(url, data, config)),
+    
+  put: <T>(url: string, data?: unknown, config?: Omit<AxiosRequestConfig, "url">) =>
+    handleApiResponse<T>(apiClient.put(url, data, config)),
+    
+  delete: <T>(url: string, config?: Omit<AxiosRequestConfig, "url">) =>
+    handleApiResponse<T>(apiClient.delete(url, config)),
 };
 
 export default apiClient;

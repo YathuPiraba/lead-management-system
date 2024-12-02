@@ -52,12 +52,20 @@ export class UsersController {
     try {
       await this.usersService.register(createUserDto, image);
       return res.status(HttpStatus.OK).json({
+        data: null, // You can replace `null` with any data you want to return
         message: `Staff username and password have been sent to staff's email.`,
+        status: HttpStatus.OK,
       });
     } catch (error) {
       console.error(error); // Log the error for debugging
+
+      // Return a structured error response
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Failed to register staff member. Please try again later.',
+        data: null, // You can replace `null` with any error data if needed
+        message:
+          error.message ||
+          'Failed to register staff member. Please try again later.',
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
   }
