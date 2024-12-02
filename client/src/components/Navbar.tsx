@@ -11,10 +11,12 @@ import { Bell, LogOut, User } from "lucide-react";
 import { Button } from "antd";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { useTheme } from "@/contexts/theme-context";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -27,7 +29,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="px-7 py-3">
+     <nav className={`px-7 py-3`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Toggle Switch */}
         <div>
@@ -35,6 +37,8 @@ const Navbar = () => {
             type="checkbox"
             className="peer absolute -left-[65rem]"
             id="dn-toggle-bs"
+            checked={isDarkMode}
+            onChange={toggleTheme}
           />
           <label
             htmlFor="dn-toggle-bs"

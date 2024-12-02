@@ -13,6 +13,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        customDark: "rgba(34, 52, 76)",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

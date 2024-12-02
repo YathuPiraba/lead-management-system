@@ -66,12 +66,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   return (
     <div
       className={cn(
-        "h-full bg-white border-r transition-all duration-300 flex flex-col",
+        "h-full border-r transition-all duration-300 flex flex-col",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo and Company Name */}
-      <div className="p-4 flex items-center gap-3">
+      <div className="p-4 text-gray-700 flex items-center gap-3">
         <Image
           src="https://res.cloudinary.com/dytx4wqfa/image/upload/v1728032282/pnfqgpmqybjcrlctedp0.jpg"
           width={48}
@@ -84,33 +84,35 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
 
       {/* Navigation Links */}
       <div className="flex-1 py-4">
-        {sidebarLinks.map((link) => {
-          const Icon = link.icon;
-          const isActive = pathname === link.href;
+        <div className="flex flex-col gap-3">
+          {sidebarLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
 
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors relative group",
-                isActive
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-100",
-                isCollapsed && "justify-center px-2"
-              )}
-            >
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              {!isCollapsed && <span>{link.title}</span>}
-              {/* Tooltip for collapsed state */}
-              {isCollapsed && (
-                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  {link.title}
-                </div>
-              )}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors relative group",
+                  isActive
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-100",
+                  isCollapsed && "justify-center px-2"
+                )}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!isCollapsed && <span>{link.title}</span>}
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                    {link.title}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* Collapse Toggle Button */}

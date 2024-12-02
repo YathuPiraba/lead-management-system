@@ -8,6 +8,7 @@ import "@/styles/app.css";
 import { useAuth } from "@/stores/auth-store";
 import { useEffect } from "react";
 import { SessionModalProvider } from "@/contexts/sessionModalContext";
+import { ThemeProvider } from "@/contexts/theme-context";
 
 const MyApp = ({ Component, pageProps, router }: AppProps) => {
   const noLayoutPages = ["/"]; // Add more routes if needed
@@ -35,9 +36,11 @@ const MyApp = ({ Component, pageProps, router }: AppProps) => {
         <Component {...pageProps} />
       ) : (
         <SessionModalProvider>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
+          <ThemeProvider>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </ThemeProvider>
         </SessionModalProvider>
       )}
     </>
