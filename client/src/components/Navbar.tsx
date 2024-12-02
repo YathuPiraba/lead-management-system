@@ -12,6 +12,7 @@ import { Button } from "antd";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useTheme } from "@/contexts/theme-context";
+import Link from "next/link";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -29,7 +30,7 @@ const Navbar = () => {
   };
 
   return (
-     <nav className={`px-7 py-3`}>
+    <nav className={`px-7 py-3`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Toggle Switch */}
         <div>
@@ -90,15 +91,19 @@ const Navbar = () => {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32 mt-2 mr-2">
-              <DropdownMenuItem className="flex items-center cursor-pointer">
-                <User className="mr-2 h-4 w-4 " />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer">
+            <DropdownMenuContent align="end" className="w-32 mt-0 mr-4">
+              <Link href="/settings">
+                <DropdownMenuItem className="flex items-center cursor-pointer p-1">
+                  <Button className="mb-0">
+                    <User className="mr-2 h-4 w-4 " />
+                    Profile
+                  </Button>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer p-1">
                 <Button
                   onClick={handleLogout}
-                  icon={<LogOut className="mr-2 h-4 w-4" />}
+                  icon={<LogOut className="mr-2 h-4 w-3" />}
                 >
                   Logout
                 </Button>

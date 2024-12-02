@@ -24,7 +24,7 @@ const Layout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Sidebar - Dynamic width */}
       <aside
         className={`fixed inset-y-0 z-20 transition-all duration-300 ease-in-out
-          ${isSidebarOpen ? "w-64" : "w-16"}`}
+          ${isSidebarOpen ? "w-64" : "w-20"}`}
       >
         <div className="h-full shadow">
           <Sidebar isCollapsed={!isSidebarOpen} onToggle={toggleSidebar} />
@@ -39,10 +39,10 @@ const Layout: React.FC<AdminLayoutProps> = ({ children }) => {
         {/* Navbar - Dynamic left offset */}
         <nav
           className={`fixed top-0 right-0 z-30 transition-all duration-300 ease-in-out
-          ${isSidebarOpen ? "left-64" : "left-16"}`}
+          ${isSidebarOpen ? "left-64" : "left-20"}`}
         >
           <div
-            className={`${isDarkMode ? "bg-gray-200" : "bg-gray-50"} shadow`}
+            className={`${isDarkMode ? "bg-gray-300" : "bg-gray-50"} shadow`}
           >
             <Navbar />
           </div>
