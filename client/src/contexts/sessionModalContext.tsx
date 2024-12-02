@@ -1,6 +1,14 @@
+"use client";
 // sessionModalContext.tsx
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import SessionExpirationModal from "../components/SessionExpirationModal";
+import { SESSION_EXPIRED_EVENT } from "@/lib/axios";
 
 interface SessionModalContextType {
   showSessionModal: () => void;
@@ -22,6 +30,20 @@ export const SessionModalProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleClose = useCallback(() => {
     setIsModalOpen(false);
   }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      showSessionModal();
+    };
+
+    // Add event listener for session expired
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    };
+  }, [showSessionModal]);
 
   return (
     <SessionModalContext.Provider value={{ showSessionModal }}>
