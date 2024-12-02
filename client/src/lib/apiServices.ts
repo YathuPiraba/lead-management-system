@@ -19,12 +19,7 @@ export const registerStaff = async (userData: FormData) => {
   try {
     const response = await apiClient.post<ApiResponse<{ user: string }>>(
       "/users/register_user",
-      userData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      userData
     );
     return response.data;
   } catch (error) {
