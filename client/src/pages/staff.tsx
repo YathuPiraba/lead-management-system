@@ -9,8 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserPlus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import AddStaffDialog from "@/components/staff/AddStaff";
 
 const StaffPage = () => {
   const staffMembers = [
@@ -22,7 +23,7 @@ const StaffPage = () => {
       phone: "+1 234-567-8905",
       status: "Active",
       performance: "High",
-      assignedLeads: 45
+      assignedLeads: 45,
     },
     {
       id: 2,
@@ -32,18 +33,17 @@ const StaffPage = () => {
       phone: "+1 234-567-8906",
       status: "Active",
       performance: "Medium",
-      assignedLeads: 32
+      assignedLeads: 32,
     },
   ];
+
+
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Staff Management</h1>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Staff Member
-        </Button>
+        <AddStaffDialog />
       </div>
 
       {/* Staff Stats */}
@@ -117,17 +117,21 @@ const StaffPage = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      staff.performance === "High" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        staff.performance === "High"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
                       {staff.performance}
                     </span>
                   </TableCell>
                   <TableCell>{staff.assignedLeads}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">Manage</Button>
+                    <Button variant="ghost" size="sm">
+                      Manage
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
