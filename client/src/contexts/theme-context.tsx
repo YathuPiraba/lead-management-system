@@ -63,7 +63,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // Update localStorage and body class when theme changes
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("theme", isDarkMode ? "dark" : "light");
       // Add or remove dark class from body
       document.body.classList.toggle("dark", isDarkMode);
       // Add or remove background color

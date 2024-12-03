@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['rc-util', 'antd', '@ant-design', 'rc-pagination', 'rc-picker'],
   images: {
     remotePatterns: [
       {

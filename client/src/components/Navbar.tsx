@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, LogOut, User } from "lucide-react";
-import { Button } from "antd";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useTheme } from "@/contexts/theme-context";
@@ -94,7 +94,7 @@ const Navbar = () => {
             <DropdownMenuContent align="end" className="w-32 mt-0 mr-4">
               <Link href="/settings">
                 <DropdownMenuItem className="flex items-center cursor-pointer p-1">
-                  <Button className="mb-0">
+                  <Button className={`bg-white text-black hover:bg-gray-100`}>
                     <User className="mr-2 h-4 w-4 " />
                     Profile
                   </Button>
@@ -103,8 +103,9 @@ const Navbar = () => {
               <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer p-1">
                 <Button
                   onClick={handleLogout}
-                  icon={<LogOut className="mr-2 h-4 w-3" />}
+                  className={`bg-white text-black hover:bg-gray-100`}
                 >
+                  <LogOut className="mr-2 h-4 w-3" />
                   Logout
                 </Button>
               </DropdownMenuItem>

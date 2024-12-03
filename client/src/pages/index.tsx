@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/auth-store";
 import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
-import { Button } from "antd";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import coverpic from "@/assets/coverpic.jpg";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+import { Loader } from "lucide-react";
 
 const LoginPage = () => {
   const [userName, setUserName] = useState("");
@@ -131,11 +132,18 @@ const LoginPage = () => {
                 )}
 
                 <Button
-                  htmlType="submit"
+                  type="submit"
                   className="w-full font-poppins login-btn tracking-widest text-lg bg-blue-500 hover:bg-blue-600"
-                  loading={isLoading}
+                  disabled={isLoading}
                 >
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </div>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
               </form>
             </div>
