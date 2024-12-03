@@ -9,8 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Phone, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
 
 const CallLogsPage = () => {
   const callLogs = [
@@ -39,10 +40,7 @@ const CallLogsPage = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Call Logs</h1>
-        <Button>
-          <Phone className="mr-2 h-4 w-4" />
-          New Call
-        </Button>
+        <AddCallLogsDialog />
       </div>
 
       <Card>
