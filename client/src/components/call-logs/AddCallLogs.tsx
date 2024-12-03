@@ -143,7 +143,7 @@ const AddCallLogsDialog = () => {
           Add Call Log
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add a New Lead or Customer</DialogTitle>
         </DialogHeader>

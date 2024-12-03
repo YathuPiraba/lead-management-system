@@ -110,7 +110,7 @@ const AddStaffDialog = () => {
           Add Staff Member
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Staff Member</DialogTitle>
         </DialogHeader>
