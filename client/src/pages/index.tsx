@@ -49,12 +49,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-blue-300 items-center justify-center">
-      <div className="w-full max-w-4xl bg-white shadow-lg rounded-2xl overflow-hidden h-[90vh]">
-        <div className="flex flex-col lg:flex-row h-full">
+    <div className="flex min-h-screen bg-blue-300 px-4 py-1">
+      <div className="w-full lg:h-full max-w-4xl bg-white shadow-lg rounded-2xl mx-auto my-auto">
+        <div className="flex flex-col lg:flex-row min-h-[500px] max-h-[90vh]">
           {/* Left Section with Image */}
-          <div className="hidden sm:flex lg:w-2/5 bg-white items-center justify-center rounded-l-2xl h-full">
-            <div className="w-[85.666667%] h-[94.333333%] overflow-hidden rounded-xl shadow-md">
+          <div className="hidden lg:flex lg:w-2/5 bg-white items-center justify-center rounded-l-2xl p-4">
+            <div className="w-full h-full overflow-hidden rounded-xl shadow-md">
               <Image
                 src={coverpic}
                 alt="Student with books"
@@ -64,33 +64,34 @@ const LoginPage = () => {
           </div>
 
           {/* Right Section with Login Form */}
-          <div className="w-full lg:w-3/5 flex justify-center items-center h-full">
-            <div className="w-full max-w-md py-6 px-4 rounded-lg">
-              {/* Logo */}
-              <div className="flex justify-start items-center gap-5 mb-6">
-                <Image
-                  src="https://res.cloudinary.com/dytx4wqfa/image/upload/v1728032282/pnfqgpmqybjcrlctedp0.jpg"
-                  alt="Company Logo"
-                  width={68}
-                  height={68}
-                  className="h-auto w-16 rounded-lg"
-                />
-                <h2 className="text-4xl mt-4 font-poppins tracking-wider font-bold text-gray-900 mb-2">
-                  IMB Connect
-                </h2>
-              </div>
-
-              {/* Header */}
-              <div className="text-justify mb-4">
-                <p className="text-gray-600 text-sm font-roboto">
+          <div className="w-full lg:w-3/5 flex flex-col h-full">
+            <div className="flex flex-col justify-between h-full p-6">
+              {/* Logo and Header Section */}
+              <div className="flex flex-col justify-center mb-2 mt-3">
+                <div className="flex flex-col lg:flex-row items-center gap-5 mb-4">
+                  <Image
+                    src="https://res.cloudinary.com/dytx4wqfa/image/upload/v1728032282/pnfqgpmqybjcrlctedp0.jpg"
+                    alt="Company Logo"
+                    width={68}
+                    height={68}
+                    className="h-auto w-16 rounded-lg"
+                  />
+                  <h2 className="text-4xl font-poppins tracking-wider font-bold text-gray-900">
+                    IMB Connect
+                  </h2>
+                </div>
+                <p className="text-gray-600 text-sm font-roboto mb-2 text-center lg:text-left">
                   Streamline student management and track leads, progress, and
                   insights with IMB Connect.
                 </p>
               </div>
 
               {/* Login Form */}
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
+              <form
+                onSubmit={handleLogin}
+                className="flex flex-col flex-1 justify-center space-y-4"
+              >
+                <div className="space-y-1">
                   <Label htmlFor="username">Username</Label>
                   <Input
                     type="text"
@@ -100,10 +101,11 @@ const LoginPage = () => {
                     placeholder="Enter your username"
                     disabled={isLoading}
                     required
+                    className="h-12"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     type="password"
@@ -113,6 +115,7 @@ const LoginPage = () => {
                     placeholder="********"
                     disabled={isLoading}
                     required
+                    className="h-12"
                   />
                 </div>
 
@@ -133,11 +136,11 @@ const LoginPage = () => {
 
                 <Button
                   type="submit"
-                  className="w-full font-poppins login-btn tracking-widest text-lg bg-blue-500 hover:bg-blue-600"
+                  className="w-full h-12 font-poppins login-btn tracking-widest text-lg bg-blue-500 hover:bg-blue-600 mt-4"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <div className="flex items-center">
+                    <div className="flex items-center justify-center">
                       <Loader className="mr-2 h-4 w-4 animate-spin" />
                       Logging in...
                     </div>
