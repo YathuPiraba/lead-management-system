@@ -94,7 +94,7 @@ const Navbar = () => {
             <DropdownMenuContent align="end" className="w-32 mt-0 mr-4">
               <Link href="/settings">
                 <DropdownMenuItem className="flex items-center cursor-pointer p-1">
-                  <Button className={`bg-white text-black hover:bg-gray-100`}>
+                  <Button className={`bg-gray-100 text-black hover:bg-gray-50`}>
                     <User className="mr-2 h-4 w-4 " />
                     Profile
                   </Button>
@@ -103,7 +103,7 @@ const Navbar = () => {
               <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer p-1">
                 <Button
                   onClick={handleLogout}
-                  className={`bg-white text-black hover:bg-gray-100`}
+                  className={`bg-gray-100 text-black hover:bg-gray-50`}
                 >
                   <LogOut className="mr-2 h-4 w-3" />
                   Logout
