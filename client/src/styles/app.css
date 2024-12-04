@@ -34,3 +34,23 @@ main::-webkit-scrollbar-thumb:hover {
 main::-webkit-scrollbar-track {
   background: #f7fafc; /* Set the background of the scrollbar track */
 }
+
+.react-international-phone-input-container
+  .react-international-phone-country-selector-button {
+  border-radius: var(--react-international-phone-border-radius, 4px);
+  margin-right: -1px;
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  width: 4rem;
+}
+
+.react-international-phone-input-container .react-international-phone-input {
+  width: 100%;
+}
+
+.react-international-phone-country-selector-button__button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}

@@ -343,23 +343,25 @@ const AddCallLogsDialog = () => {
                   <Label htmlFor="studentPhoneNumber">
                     Phone Number <span className="text-red-500">*</span>
                   </Label>
-                  <PhoneInput
-                    defaultCountry="lk"
-                    name="studentPhoneNumber"
-                    value={formData.studentPhoneNumber}
-                    onChange={(value) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        studentPhoneNumber: value || "",
-                      }));
-                    }}
-                    placeholder="Enter phone number"
-                    className={
-                      validationErrors.studentPhoneNumber
-                        ? "border-red-500"
-                        : ""
-                    }
-                  />
+                  <div className="w-full">
+                    <PhoneInput
+                      defaultCountry="lk"
+                      name="studentPhoneNumber"
+                      value={formData.studentPhoneNumber}
+                      onChange={(value) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          studentPhoneNumber: value || "",
+                        }));
+                      }}
+                      placeholder="Enter phone number"
+                      className={`w-full ${
+                        validationErrors.studentPhoneNumber
+                          ? "border-red-500"
+                          : ""
+                      }`}
+                    />
+                  </div>
                   {renderFieldError("studentPhoneNumber")}
                 </div>
 
