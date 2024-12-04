@@ -56,16 +56,16 @@ const formatDateTimeForInput = (date: Date): string => {
 };
 
 // Helper function to get current system date-time
-const getCurrentDateTime = (): string => {
-  return formatDateTimeForInput(new Date());
-};
+// const getCurrentDateTime = (): string => {
+//   return formatDateTimeForInput(new Date());
+// };
 
 const initialFormData: CallLogFormData = {
   studentName: "",
   studentAddress: "",
   studentPhoneNumber: "",
   department: "",
-  callDate: getCurrentDateTime(),
+  callDate: "",
   nextFollowupDate: "",
   notes: "",
   repeatFollowup: false,
@@ -395,7 +395,7 @@ const AddCallLogsDialog = () => {
                     id="callDate"
                     name="callDate"
                     type="datetime-local"
-                    value={formData.callDate || getCurrentDateTime()}
+                    value={formData.callDate}
                     onChange={handleInputChange}
                     className={
                       validationErrors.callDate ? "border-red-500" : ""
