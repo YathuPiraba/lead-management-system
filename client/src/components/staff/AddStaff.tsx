@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTheme } from "@/contexts/theme-context";
 import { registerStaff } from "@/lib/apiServices";
 import { toast } from "react-hot-toast";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 
 interface StaffFormData {
   firstName: string;
@@ -79,7 +81,7 @@ const AddStaffDialog = () => {
       setLoading(false);
       return;
     }
-    
+
     try {
       const payload = new FormData();
       payload.append("firstName", formData.firstName);
@@ -164,12 +166,16 @@ const AddStaffDialog = () => {
             <Label htmlFor="contactNo">
               Contact Number <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="contactNo"
+            <PhoneInput
+              defaultCountry="lk"
               name="contactNo"
-              type="text"
               value={formData.contactNo}
-              onChange={handleInputChange}
+              onChange={(value) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  contactNo: value || "",
+                }));
+              }}
               placeholder="Enter contact number"
               required
             />

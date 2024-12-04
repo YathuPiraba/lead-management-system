@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader, PhoneCall, User, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTheme } from "@/contexts/theme-context";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 import {
   Select,
   SelectContent,
@@ -341,12 +343,17 @@ const AddCallLogsDialog = () => {
                   <Label htmlFor="studentPhoneNumber">
                     Phone Number <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    id="studentPhoneNumber"
+                  <PhoneInput
+                    defaultCountry="lk"
                     name="studentPhoneNumber"
                     value={formData.studentPhoneNumber}
-                    onChange={handleInputChange}
-                    placeholder="Enter student phone number"
+                    onChange={(value) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        studentPhoneNumber: value || "",
+                      }));
+                    }}
+                    placeholder="Enter phone number"
                     className={
                       validationErrors.studentPhoneNumber
                         ? "border-red-500"

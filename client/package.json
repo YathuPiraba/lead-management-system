@@ -44,6 +44,7 @@
     "react-hook-form": "^7.53.2",
     "react-hot-toast": "^2.4.1",
     "react-image-crop": "^11.0.7",
+    "react-international-phone": "^4.3.0",
     "react-query": "^3.39.3",
     "socket.io-client": "^4.8.1",
     "swr": "^2.2.5",
