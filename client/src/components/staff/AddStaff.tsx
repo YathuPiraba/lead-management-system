@@ -32,6 +32,13 @@ const AddStaffDialog = () => {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  const handleClose = () => {
+    // Reset state when closing the dialog
+    setFormData({ firstName: "", email: "", contactNo: "" });
+    setError("");
+    setOpen(false);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
 
@@ -67,12 +74,12 @@ const AddStaffDialog = () => {
       return;
     }
 
-    if (isNaN(Number(formData.contactNo))) {
-      setError("Contact number must be a valid number");
+    if (isNaN(Number(formData.contactNo)) || formData.contactNo.length < 9) {
+      setError("Contact number must be at least 9 digits and valid");
       setLoading(false);
       return;
     }
-
+    
     try {
       const payload = new FormData();
       payload.append("firstName", formData.firstName);
@@ -99,7 +106,13 @@ const AddStaffDialog = () => {
   const { isDarkMode } = useTheme();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleClose();
+        else setOpen(isOpen);
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           className={`${
@@ -110,7 +123,10 @@ const AddStaffDialog = () => {
           Add Staff Member
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Add New Staff Member</DialogTitle>
         </DialogHeader>
@@ -180,11 +196,7 @@ const AddStaffDialog = () => {
           )}
 
           <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading} className="min-w-[120px]">

@@ -33,22 +33,56 @@ interface CallLogFormData {
   doNotFollowup: boolean;
 }
 
+interface ValidationErrors {
+  studentName?: string;
+  studentAddress?: string;
+  studentPhoneNumber?: string;
+  department?: string;
+  callDate?: string;
+}
+
+const initialFormData: CallLogFormData = {
+  studentName: "",
+  studentAddress: "",
+  studentPhoneNumber: "",
+  department: "",
+  callDate: "",
+  nextFollowupDate: "",
+  notes: "",
+  repeatFollowup: true,
+  doNotFollowup: false,
+};
+
 const AddCallLogsDialog = () => {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "followup">("profile");
-  const [formData, setFormData] = useState<CallLogFormData>({
-    studentName: "",
-    studentAddress: "",
-    studentPhoneNumber: "",
-    department: "",
-    callDate: "",
-    nextFollowupDate: "",
-    notes: "",
-    repeatFollowup: true,
-    doNotFollowup: false,
-  });
-  const [error, setError] = useState<string>("");
+  const [formData, setFormData] = useState<CallLogFormData>(initialFormData);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
   const [loading, setLoading] = useState(false);
+  const { isDarkMode } = useTheme();
+
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setValidationErrors({});
+    setActiveTab("profile");
+  };
+
+  const handleClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      // Only handle modal closing, not opening
+      const shouldClose = window.confirm(
+        "Are you sure you want to close? All unsaved changes will be lost."
+      );
+      if (shouldClose) {
+        resetForm();
+        setOpen(false);
+      }
+    } else {
+      setOpen(true);
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -56,6 +90,12 @@ const AddCallLogsDialog = () => {
     const target = e.target;
     const name = target.name;
     const value = target.value;
+
+    // Clear validation error for the field being changed
+    setValidationErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
+    }));
 
     if (target instanceof HTMLInputElement && target.type === "checkbox") {
       if (name === "followupToggle") {
@@ -83,56 +123,105 @@ const AddCallLogsDialog = () => {
       ...prev,
       department: value,
     }));
+    setValidationErrors((prev) => ({
+      ...prev,
+      department: undefined,
+    }));
+  };
+
+  const validateProfile = (): boolean => {
+    const errors: ValidationErrors = {};
+    let isValid = true;
+
+    if (!formData.studentName.trim()) {
+      errors.studentName = "Student name is required";
+      isValid = false;
+    }
+
+    if (!formData.studentAddress.trim()) {
+      errors.studentAddress = "Address is required";
+      isValid = false;
+    }
+
+    if (!formData.studentPhoneNumber.trim()) {
+      errors.studentPhoneNumber = "Phone number is required";
+      isValid = false;
+    } else if (
+      isNaN(Number(formData.studentPhoneNumber)) ||
+      formData.studentPhoneNumber.length < 9
+    ) {
+      errors.studentPhoneNumber = "Phone number must be at least 9 digits and valid";
+      isValid = false;
+    }
+
+    if (!formData.department) {
+      errors.department = "Department is required";
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
+  };
+
+  const validateFollowup = (): boolean => {
+    const errors: ValidationErrors = {};
+    let isValid = true;
+
+    if (!formData.callDate) {
+      errors.callDate = "Call date is required";
+      isValid = false;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
+  };
+
+  const handleNext = () => {
+    if (validateProfile()) {
+      setActiveTab("followup");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
-    if (
-      !formData.studentName ||
-      !formData.studentAddress ||
-      !formData.studentPhoneNumber ||
-      !formData.department ||
-      !formData.callDate
-    ) {
-      setError("Please fill in all required fields");
-      setLoading(false);
-      return;
-    }
+    const isProfileValid = validateProfile();
+    const isFollowupValid = validateFollowup();
 
-    if (isNaN(Number(formData.studentPhoneNumber))) {
-      setError("Phone number must be a valid number");
+    if (!isProfileValid || !isFollowupValid) {
       setLoading(false);
       return;
     }
 
     try {
+      // Your API call here
+      resetForm();
       setOpen(false);
-      setFormData({
-        studentName: "",
-        studentAddress: "",
-        studentPhoneNumber: "",
-        department: "",
-        callDate: "",
-        nextFollowupDate: "",
-        notes: "",
-        repeatFollowup: true,
-        doNotFollowup: false,
-      });
     } catch (error) {
       console.error(error);
-      setError("Failed to add call log. Please try again.");
+      setValidationErrors((prev) => ({
+        ...prev,
+        submit: "Failed to add call log. Please try again.",
+      }));
     } finally {
       setLoading(false);
     }
   };
 
-  const { isDarkMode } = useTheme();
+  const renderFieldError = (fieldName: keyof ValidationErrors) => {
+    if (validationErrors[fieldName]) {
+      return (
+        <span className="text-red-500 text-sm mt-1">
+          {validationErrors[fieldName]}
+        </span>
+      );
+    }
+    return null;
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         <Button
           className={`${
@@ -143,7 +232,10 @@ const AddCallLogsDialog = () => {
           Add Call Log
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Add a New Lead or Customer</DialogTitle>
         </DialogHeader>
@@ -160,7 +252,7 @@ const AddCallLogsDialog = () => {
               <span>Profile</span>
             </button>
             <button
-              onClick={() => setActiveTab("followup")}
+              onClick={() => activeTab === "profile" && handleNext()}
               className={`w-full p-4 text-center rounded-lg flex flex-col items-center gap-2 transition-colors ${
                 activeTab === "followup" ? "bg-blue-100" : "hover:bg-gray-100"
               }`}
@@ -184,8 +276,11 @@ const AddCallLogsDialog = () => {
                     value={formData.studentName}
                     onChange={handleInputChange}
                     placeholder="Enter student name"
-                    required
+                    className={
+                      validationErrors.studentName ? "border-red-500" : ""
+                    }
                   />
+                  {renderFieldError("studentName")}
                 </div>
 
                 <div className="space-y-2">
@@ -198,8 +293,11 @@ const AddCallLogsDialog = () => {
                     value={formData.studentAddress}
                     onChange={handleInputChange}
                     placeholder="Enter student address"
-                    required
+                    className={
+                      validationErrors.studentAddress ? "border-red-500" : ""
+                    }
                   />
+                  {renderFieldError("studentAddress")}
                 </div>
 
                 <div className="space-y-2">
@@ -212,8 +310,13 @@ const AddCallLogsDialog = () => {
                     value={formData.studentPhoneNumber}
                     onChange={handleInputChange}
                     placeholder="Enter student phone number"
-                    required
+                    className={
+                      validationErrors.studentPhoneNumber
+                        ? "border-red-500"
+                        : ""
+                    }
                   />
+                  {renderFieldError("studentPhoneNumber")}
                 </div>
 
                 <div className="space-y-2">
@@ -224,7 +327,11 @@ const AddCallLogsDialog = () => {
                     value={formData.department}
                     onValueChange={handleDepartmentChange}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className={
+                        validationErrors.department ? "border-red-500" : ""
+                      }
+                    >
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
@@ -238,6 +345,7 @@ const AddCallLogsDialog = () => {
                       <SelectItem value="Wrong call">Wrong call</SelectItem>
                     </SelectContent>
                   </Select>
+                  {renderFieldError("department")}
                 </div>
               </>
             ) : (
@@ -252,8 +360,11 @@ const AddCallLogsDialog = () => {
                     type="date"
                     value={formData.callDate}
                     onChange={handleInputChange}
-                    required
+                    className={
+                      validationErrors.callDate ? "border-red-500" : ""
+                    }
                   />
+                  {renderFieldError("callDate")}
                 </div>
 
                 <div className="space-y-2">
@@ -265,7 +376,7 @@ const AddCallLogsDialog = () => {
                     value={formData.nextFollowupDate}
                     onChange={handleInputChange}
                   />
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     <Button type="button" variant="outline" size="sm">
                       Next 1 hour
                     </Button>
@@ -291,7 +402,7 @@ const AddCallLogsDialog = () => {
 
                 <div className="relative flex flex-wrap gap-2 items-center">
                   <label
-                    className="cursor-pointer pl-2  text-slate-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400"
+                    className="cursor-pointer pl-2 text-slate-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400"
                     htmlFor="followupToggle"
                   >
                     {formData.repeatFollowup
@@ -310,9 +421,16 @@ const AddCallLogsDialog = () => {
               </>
             )}
 
-            {error && (
+            {Object.keys(validationErrors).length > 0 && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  <div>Please fix the following errors:</div>
+                  <ul className="list-disc pl-4 mt-2">
+                    {Object.entries(validationErrors).map(([field, error]) => (
+                      <li key={field}>{error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
               </Alert>
             )}
 
@@ -320,16 +438,41 @@ const AddCallLogsDialog = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  if (activeTab === "followup") {
+                    setActiveTab("profile");
+                  } else {
+                    const shouldClose = window.confirm(
+                      "Are you sure you want to close? All unsaved changes will be lost."
+                    );
+                    if (shouldClose) {
+                      resetForm();
+                      setOpen(false);
+                    }
+                  }
+                }}
               >
-                Cancel
+                {activeTab === "followup" ? "Back" : "Cancel"}
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (activeTab === "profile") {
+                    handleNext();
+                  } else {
+                    handleSubmit(
+                      new Event("submit") as unknown as React.FormEvent
+                    );
+                  }
+                }}
+              >
                 {loading ? (
                   <div className="flex items-center">
                     <Loader className="mr-2 h-4 w-4 animate-spin" />
-                    Adding...
+                    {activeTab === "profile" ? "Moving..." : "Adding..."}
                   </div>
+                ) : activeTab === "profile" ? (
+                  "Next"
                 ) : (
                   "Save"
                 )}
