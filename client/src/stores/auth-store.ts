@@ -246,13 +246,9 @@ if (typeof window !== "undefined") {
       Date.now() - state.lastActivity > SESSION_TIMEOUT
     ) {
       window.dispatchEvent(new Event("session:expired"));
-      state.resetState();
     }
   }, 60000);
 
-  window.addEventListener("session:expired", () => {
-    useAuthStore.getState().resetState();
-  });
 }
 
 export const useAuth = () => useAuthStore();
