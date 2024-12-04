@@ -42,12 +42,30 @@ interface ValidationErrors {
   callDate?: string;
 }
 
+// Helper function to format date-time for input
+const formatDateTimeForInput = (date: Date): string => {
+  // Get local date time components
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  // Format as YYYY-MM-DDThh:mm
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Helper function to get current system date-time
+const getCurrentDateTime = (): string => {
+  return formatDateTimeForInput(new Date());
+};
+
 const initialFormData: CallLogFormData = {
   studentName: "",
   studentAddress: "",
   studentPhoneNumber: "",
   department: "",
-  callDate: "",
+  callDate: getCurrentDateTime(),
   nextFollowupDate: "",
   notes: "",
   repeatFollowup: false,
@@ -63,6 +81,28 @@ const AddCallLogsDialog = () => {
   );
   const [loading, setLoading] = useState(false);
   const { isDarkMode } = useTheme();
+
+  const handleQuickDateSelect = (type: "hour" | "tomorrow" | "week") => {
+    const now = new Date();
+    const nextDate = new Date();
+
+    switch (type) {
+      case "hour":
+        nextDate.setHours(now.getHours() + 1);
+        break;
+      case "tomorrow":
+        nextDate.setDate(now.getDate() + 1);
+        break;
+      case "week":
+        nextDate.setDate(now.getDate() + 7);
+        break;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      nextFollowupDate: formatDateTimeForInput(nextDate),
+    }));
+  };
 
   const resetForm = () => {
     setFormData(initialFormData);
@@ -181,7 +221,9 @@ const AddCallLogsDialog = () => {
         },
         callLog: {
           call_date: formData.callDate,
-          next_followup_date: formData.nextFollowupDate,
+          next_followup_date: formData.doNotFollowup
+            ? ""
+            : formData.nextFollowupDate,
           notes: formData.notes,
           repeat_followup: formData.repeatFollowup,
           do_not_followup: formData.doNotFollowup,
@@ -352,8 +394,8 @@ const AddCallLogsDialog = () => {
                   <Input
                     id="callDate"
                     name="callDate"
-                    type="date"
-                    value={formData.callDate}
+                    type="datetime-local"
+                    value={formData.callDate || getCurrentDateTime()}
                     onChange={handleInputChange}
                     className={
                       validationErrors.callDate ? "border-red-500" : ""
@@ -381,7 +423,7 @@ const AddCallLogsDialog = () => {
                       setFormData((prev) => ({
                         ...prev,
                         repeatFollowup: e.target.checked,
-                        doNotFollowup: !e.target.checked, // toggle the other state
+                        doNotFollowup: !e.target.checked,
                       }))
                     }
                   />
@@ -392,22 +434,39 @@ const AddCallLogsDialog = () => {
                   <Input
                     id="nextFollowupDate"
                     name="nextFollowupDate"
-                    type="date"
+                    type="datetime-local"
                     value={formData.nextFollowupDate}
                     onChange={handleInputChange}
                     disabled={formData.doNotFollowup}
                   />
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <Button type="button" variant="outline" size="sm">
-                      Next 1 hour
-                    </Button>
-                    <Button type="button" variant="outline" size="sm">
-                      Tomorrow same time
-                    </Button>
-                    <Button type="button" variant="outline" size="sm">
-                      Next week same time
-                    </Button>
-                  </div>
+                  {formData.repeatFollowup && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuickDateSelect("hour")}
+                      >
+                        Next 1 hour
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuickDateSelect("tomorrow")}
+                      >
+                        Tomorrow same time
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuickDateSelect("week")}
+                      >
+                        Next week same time
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
