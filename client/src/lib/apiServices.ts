@@ -27,7 +27,6 @@ export const registerStaff = async (userData: FormData) => {
   }
 };
 
-
 // Update user data
 export const updateUser = async (
   userId: string,
@@ -49,6 +48,17 @@ export const deleteUser = async (userId: string) => {
   try {
     await apiClient.delete(`/users/${userId}`);
     return true; // Return true if the deletion was successful
+  } catch (error) {
+    throw error; // Re-throw error for further handling by the caller
+  }
+};
+
+export const addStudentAndCallLog = async (data: object) => {
+  try {
+    const response = await apiClient.post<
+      ApiResponse<{ student: string; callLog: string }>
+    >("/students/add-student-call-log", data);
+    return response.data;
   } catch (error) {
     throw error; // Re-throw error for further handling by the caller
   }

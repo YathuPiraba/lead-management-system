@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import toast from "react-hot-toast";
+import { useAuth } from "@/stores/auth-store";
+import { addStudentAndCallLog } from "@/lib/apiServices";
 
 interface CallLogFormData {
   studentName: string;
@@ -83,6 +85,9 @@ const AddCallLogsDialog = () => {
   );
   const [loading, setLoading] = useState(false);
   const { isDarkMode } = useTheme();
+  const { user } = useAuth();
+
+  const userId = user?.id;
 
   const handleQuickDateSelect = (type: "hour" | "tomorrow" | "week") => {
     const now = new Date();
@@ -224,12 +229,14 @@ const AddCallLogsDialog = () => {
           notes: formData.notes,
           repeat_followup: formData.repeatFollowup,
           do_not_followup: formData.doNotFollowup,
+          userId: userId,
         },
       };
 
       // Call API with payload
       console.log("Submitting data:", payload);
-      toast.success("Call Log Added Successfully");
+      const res = await addStudentAndCallLog(payload);
+      toast.success(res.message || "Call Log Added Successfully");
       resetForm();
       setOpen(false);
     } catch (error) {

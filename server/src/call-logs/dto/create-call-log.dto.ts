@@ -4,6 +4,10 @@ import {
   IsDateString,
   IsOptional,
   IsUUID,
+  IsInt,
+  Min,
+  Max,
+  IsIn,
 } from 'class-validator';
 
 export class CreateCallLogDto {
@@ -29,4 +33,18 @@ export class CreateCallLogDto {
   @IsBoolean()
   @IsOptional()
   doNotFollowup?: boolean;
+
+  @IsInt()
+  @Min(0)
+  @Max(4)
+  @IsOptional()
+  followupCount?: number;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(['open', 'closed', 'pending'])
+  status?: string;
+
+  @IsInt()
+  userId: number;
 }

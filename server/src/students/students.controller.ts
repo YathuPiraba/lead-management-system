@@ -8,6 +8,13 @@ export class StudentsController {
 
   @Post('add-student-call-log')
   async addStudentAndCallLog(@Body() data: AddStudentCallLogDto) {
-    return this.studentsService.addStudentAndCallLog(data);
+    const result = await this.studentsService.addStudentAndCallLog(data);
+
+    return {
+      data: result,
+      message: 'Student and Call Log added successfully',
+      status: 200,
+      code: 'SUCCESS',
+    };
   }
 }

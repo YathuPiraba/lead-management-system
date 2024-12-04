@@ -25,6 +25,11 @@ export class StudentsService {
     const newCallLog = this.callLogRepository.create({
       ...callLog,
       student: savedStudent,
+      followup_count: 1,
+      user: { id: callLog.userId },
+      next_followup_date: callLog.nextFollowupDate
+        ? callLog.nextFollowupDate
+        : null,
     });
     const savedCallLog = await this.callLogRepository.save(newCallLog);
 
