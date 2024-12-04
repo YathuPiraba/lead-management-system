@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import toast from "react-hot-toast";
 
 interface CallLogFormData {
   studentName: string;
@@ -49,8 +50,8 @@ const initialFormData: CallLogFormData = {
   callDate: "",
   nextFollowupDate: "",
   notes: "",
-  repeatFollowup: true,
-  doNotFollowup: false,
+  repeatFollowup: false,
+  doNotFollowup: true,
 };
 
 const AddCallLogsDialog = () => {
@@ -91,41 +92,16 @@ const AddCallLogsDialog = () => {
     const name = target.name;
     const value = target.value;
 
-    // Clear validation error for the field being changed
-    setValidationErrors((prev) => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: undefined,
+      [name]: value,
     }));
-
-    if (target instanceof HTMLInputElement && target.type === "checkbox") {
-      if (name === "followupToggle") {
-        setFormData((prev) => ({
-          ...prev,
-          repeatFollowup: target.checked,
-          doNotFollowup: !target.checked,
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      }
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
   };
 
   const handleDepartmentChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
       department: value,
-    }));
-    setValidationErrors((prev) => ({
-      ...prev,
-      department: undefined,
     }));
   };
 
@@ -150,7 +126,8 @@ const AddCallLogsDialog = () => {
       isNaN(Number(formData.studentPhoneNumber)) ||
       formData.studentPhoneNumber.length < 9
     ) {
-      errors.studentPhoneNumber = "Phone number must be at least 9 digits and valid";
+      errors.studentPhoneNumber =
+        "Phone number must be at least 9 digits and valid";
       isValid = false;
     }
 
@@ -195,7 +172,25 @@ const AddCallLogsDialog = () => {
     }
 
     try {
-      // Your API call here
+      const payload = {
+        student: {
+          name: formData.studentName,
+          address: formData.studentAddress,
+          phone_number: formData.studentPhoneNumber,
+          department_of_study: formData.department,
+        },
+        callLog: {
+          call_date: formData.callDate,
+          next_followup_date: formData.nextFollowupDate,
+          notes: formData.notes,
+          repeat_followup: formData.repeatFollowup,
+          do_not_followup: formData.doNotFollowup,
+        },
+      };
+
+      // Call API with payload
+      console.log("Submitting data:", payload);
+      toast.success("Call Log Added Successfully");
       resetForm();
       setOpen(false);
     } catch (error) {
@@ -367,6 +362,31 @@ const AddCallLogsDialog = () => {
                   {renderFieldError("callDate")}
                 </div>
 
+                <div className="relative flex flex-wrap gap-2 items-center">
+                  <label
+                    className="cursor-pointer text-slate-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400"
+                    htmlFor="repeatFollowup"
+                  >
+                    {formData.repeatFollowup
+                      ? "Repeat Follow-up"
+                      : "Do Not Follow-up"}
+                  </label>
+                  <input
+                    className="peer relative h-4 w-8 cursor-pointer appearance-none rounded-lg bg-slate-300 transition-colors after:absolute after:top-0 after:left-0 after:h-4 after:w-4 after:rounded-full after:bg-slate-500 after:transition-all checked:bg-emerald-200 checked:after:left-4 checked:after:bg-emerald-500 hover:bg-slate-400 after:hover:bg-slate-600 checked:hover:bg-emerald-300 checked:after:hover:bg-emerald-600 focus:outline-none checked:focus:bg-emerald-400 checked:after:focus:bg-emerald-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-200 disabled:after:bg-slate-300"
+                    type="checkbox"
+                    id="repeatFollowup"
+                    name="repeatFollowup"
+                    checked={formData.repeatFollowup}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        repeatFollowup: e.target.checked,
+                        doNotFollowup: !e.target.checked, // toggle the other state
+                      }))
+                    }
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="nextFollowupDate">Next Follow-Up Date</Label>
                   <Input
@@ -375,6 +395,7 @@ const AddCallLogsDialog = () => {
                     type="date"
                     value={formData.nextFollowupDate}
                     onChange={handleInputChange}
+                    disabled={formData.doNotFollowup}
                   />
                   <div className="flex flex-wrap gap-2 mt-2">
                     <Button type="button" variant="outline" size="sm">
@@ -397,25 +418,6 @@ const AddCallLogsDialog = () => {
                     value={formData.notes}
                     onChange={handleInputChange}
                     placeholder="What to do on next follow-up?"
-                  />
-                </div>
-
-                <div className="relative flex flex-wrap gap-2 items-center">
-                  <label
-                    className="cursor-pointer pl-2 text-slate-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400"
-                    htmlFor="followupToggle"
-                  >
-                    {formData.repeatFollowup
-                      ? "Repeat Follow-up"
-                      : "Do Not Follow-up"}
-                  </label>
-                  <input
-                    className="peer relative h-4 w-8 cursor-pointer appearance-none rounded-lg bg-slate-300 transition-colors after:absolute after:top-0 after:left-0 after:h-4 after:w-4 after:rounded-full after:bg-slate-500 after:transition-all checked:bg-emerald-200 checked:after:left-4 checked:after:bg-emerald-500 hover:bg-slate-400 after:hover:bg-slate-600 checked:hover:bg-emerald-300 checked:after:hover:bg-emerald-600 focus:outline-none checked:focus:bg-emerald-400 checked:after:focus:bg-emerald-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-slate-200 disabled:after:bg-slate-300"
-                    type="checkbox"
-                    name="followupToggle"
-                    checked={formData.repeatFollowup}
-                    onChange={handleInputChange}
-                    id="followupToggle"
                   />
                 </div>
               </>
