@@ -156,11 +156,6 @@ const AddCallLogsDialog = () => {
       isValid = false;
     }
 
-    if (!formData.studentAddress.trim()) {
-      errors.studentAddress = "Address is required";
-      isValid = false;
-    }
-
     if (!formData.studentPhoneNumber.trim()) {
       errors.studentPhoneNumber = "Phone number is required";
       isValid = false;
@@ -323,20 +318,14 @@ const AddCallLogsDialog = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="studentAddress">
-                    Address <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="studentAddress">Address</Label>
                   <Input
                     id="studentAddress"
                     name="studentAddress"
                     value={formData.studentAddress}
                     onChange={handleInputChange}
                     placeholder="Enter student address"
-                    className={
-                      validationErrors.studentAddress ? "border-red-500" : ""
-                    }
                   />
-                  {renderFieldError("studentAddress")}
                 </div>
 
                 <div className="space-y-2">
