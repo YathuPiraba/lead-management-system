@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,29 +12,37 @@ import {
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
+import { getCallLogs } from "@/lib/apiServices";
+
+export type CallLogType = {
+  id: string;
+  studentName: string;
+  phone: string;
+  date: string;
+  status: string;
+  notes: string;
+};
 
 const CallLogsPage = () => {
-  const callLogs = [
-    {
-      id: 1,
-      studentName: "John Doe",
-      phone: "+1 234-567-8901",
-      date: "2024-03-28",
-      duration: "5:23",
-      status: "Completed",
-      notes: "Interested in Web Development course",
-    },
-    {
-      id: 2,
-      studentName: "Jane Smith",
-      phone: "+1 234-567-8902",
-      date: "2024-03-28",
-      duration: "3:45",
-      status: "No Answer",
-      notes: "Will try again tomorrow",
-    },
-    // Add more sample data as needed
-  ];
+  const [loading, setLoading] = useState(true);
+  const [callLogs, setCallLogs] = React.useState<CallLogType[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCallLogs = async () => {
+      try {
+        const data = await getCallLogs();
+        setCallLogs(data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load call logs");
+        console.error(err);
+        setLoading(false);
+      }
+    };
+
+    fetchCallLogs();
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -55,42 +63,46 @@ const CallLogsPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student Name</TableHead>
-                <TableHead>Phone Number</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {callLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="font-medium">
-                    {log.studentName}
-                  </TableCell>
-                  <TableCell>{log.phone}</TableCell>
-                  <TableCell>{log.date}</TableCell>
-                  <TableCell>{log.duration}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        log.status === "Completed"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {log.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{log.notes}</TableCell>
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student Name</TableHead>
+                  <TableHead>Phone Number</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Notes</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {callLogs.map((log: any) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="font-medium">
+                      {log.studentName}
+                    </TableCell>
+                    <TableCell>{log.phone}</TableCell>
+                    <TableCell>{log.date}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          log.status === "Completed"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {log.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>{log.notes}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
