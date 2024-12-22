@@ -1,15 +1,6 @@
 import apiClient from "./axios";
 import { ApiResponse } from "./axios";
 
-type CallLogType = {
-  id: string;
-  studentName: string;
-  phone: string;
-  date: string;
-  status: string;
-  notes: string;
-};
-
 // Get user data
 export const getUserData = async (userId: string) => {
   try {
@@ -69,25 +60,5 @@ export const addStudentAndCallLog = async (data: object) => {
     return response.data;
   } catch (error) {
     throw error; // Re-throw error for further handling by the caller
-  }
-};
-
-export const getCallLogs = async (): Promise<CallLogType[]> => {
-  try {
-    const response = await apiClient.get<ApiResponse<object[]>>("/call-logs");
-    const transformedData: CallLogType[] = response.data.data.map(
-      (log: any) => ({
-        id: log.id,
-        studentName: log.studentName,
-        phone: log.phone,
-        date: log.date,
-        status: log.status,
-        notes: log.notes,
-      })
-    );
-
-    return transformedData;
-  } catch (error) {
-    throw error;
   }
 };

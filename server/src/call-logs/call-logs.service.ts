@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CallLog } from './call-log.entity';
 
 @Injectable()
@@ -10,13 +10,29 @@ export class CallLogsService {
     private callLogRepository: Repository<CallLog>,
   ) {}
 
-  async getCallLogs(): Promise<any[]> {
-    const rawCallLogs = await this.callLogRepository.find({
+  async getCallLogs(
+    page = 1,
+    limit = 10,
+    search = '',
+    sort: 'ASC' | 'DESC' = 'DESC',
+  ): Promise<any> {
+    const [data, total] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user'],
+      where: search
+        ? [
+            { student: { name: ILike(`%${search}%`) } },
+            { student: { phone_number: ILike(`%${search}%`) } },
+            { notes: ILike(`%${search}%`) },
+          ]
+        : undefined,
+      order: {
+        call_date: sort,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    // Map the raw call logs into the desired format
-    const formattedCallLogs = rawCallLogs.map((log) => ({
+    const formattedCallLogs = data.map((log) => ({
       id: log.id,
       studentName: log.student.name,
       phone: log.student.phone_number,
@@ -25,6 +41,16 @@ export class CallLogsService {
       notes: log.notes,
     }));
 
-    return formattedCallLogs;
+    return {
+      data: formattedCallLogs,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        totalItems: total,
+        itemsPerPage: limit,
+      },
+    };
   }
 }

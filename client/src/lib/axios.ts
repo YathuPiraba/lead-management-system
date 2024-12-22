@@ -23,6 +23,12 @@ export class ApiError extends Error {
 export interface ApiResponse<T = unknown> {
   data: T;
   message?: string;
+  meta?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
   status: number;
   code?: string;
 }
@@ -203,13 +209,19 @@ export const handleApiResponse = async <T>(
 export const createApiRequest = {
   get: <T>(url: string, config?: Omit<AxiosRequestConfig, "url">) =>
     handleApiResponse<T>(apiClient.get(url, config)),
-    
-  post: <T>(url: string, data?: unknown, config?: Omit<AxiosRequestConfig, "url">) =>
-    handleApiResponse<T>(apiClient.post(url, data, config)),
-    
-  put: <T>(url: string, data?: unknown, config?: Omit<AxiosRequestConfig, "url">) =>
-    handleApiResponse<T>(apiClient.put(url, data, config)),
-    
+
+  post: <T>(
+    url: string,
+    data?: unknown,
+    config?: Omit<AxiosRequestConfig, "url">
+  ) => handleApiResponse<T>(apiClient.post(url, data, config)),
+
+  put: <T>(
+    url: string,
+    data?: unknown,
+    config?: Omit<AxiosRequestConfig, "url">
+  ) => handleApiResponse<T>(apiClient.put(url, data, config)),
+
   delete: <T>(url: string, config?: Omit<AxiosRequestConfig, "url">) =>
     handleApiResponse<T>(apiClient.delete(url, config)),
 };

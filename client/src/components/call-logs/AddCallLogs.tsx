@@ -76,7 +76,13 @@ const initialFormData: CallLogFormData = {
   doNotFollowup: true,
 };
 
-const AddCallLogsDialog = () => {
+interface AddCallLogsDialogProps {
+  fetchCallLogs: () => void;
+}
+
+const AddCallLogsDialog: React.FC<AddCallLogsDialogProps> = ({
+  fetchCallLogs,
+}) => {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"profile" | "followup">("profile");
   const [formData, setFormData] = useState<CallLogFormData>(initialFormData);
@@ -232,11 +238,9 @@ const AddCallLogsDialog = () => {
           userId: userId,
         },
       };
-
-      // Call API with payload
-      console.log("Submitting data:", payload);
       const res = await addStudentAndCallLog(payload);
       toast.success(res.message || "Call Log Added Successfully");
+      fetchCallLogs();
       resetForm();
       setOpen(false);
     } catch (error) {

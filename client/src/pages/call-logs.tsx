@@ -9,46 +9,43 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Loader, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
-import { getCallLogs } from "@/lib/apiServices";
-
-export type CallLogType = {
-  id: string;
-  studentName: string;
-  phone: string;
-  date: string;
-  status: string;
-  notes: string;
-};
+import { CallLogType, getCallLogs } from "@/lib/call-logs.api";
 
 const CallLogsPage = () => {
   const [loading, setLoading] = useState(true);
   const [callLogs, setCallLogs] = React.useState<CallLogType[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCallLogs = async () => {
-      try {
-        const data = await getCallLogs();
-        setCallLogs(data);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load call logs");
-        console.error(err);
-        setLoading(false);
-      }
-    };
+  const fetchCallLogs = async () => {
+    try {
+      const res = await getCallLogs();
+      setCallLogs(res.data);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load call logs");
+      console.error(err);
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCallLogs();
   }, []);
+
+  if (loading) {
+    <div className="flex justify-center items-center h-40">
+      <Loader />
+    </div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Call Logs</h1>
-        <AddCallLogsDialog />
+        <AddCallLogsDialog fetchCallLogs={fetchCallLogs} />
       </div>
 
       <Card>
@@ -63,9 +60,7 @@ const CallLogsPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <p>Loading...</p>
-          ) : error ? (
+          {error ? (
             <p className="text-red-500">{error}</p>
           ) : (
             <Table>
