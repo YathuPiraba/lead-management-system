@@ -238,6 +238,7 @@ const AddCallLogsDialog: React.FC<AddCallLogsDialogProps> = ({
           userId: userId,
         },
       };
+
       const res = await addStudentAndCallLog(payload);
       toast.success(res.message || "Call Log Added Successfully");
       fetchCallLogs();

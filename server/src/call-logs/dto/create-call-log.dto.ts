@@ -20,7 +20,7 @@ export class CreateCallLogDto {
 
   @IsDateString()
   @IsOptional()
-  nextFollowupDate?: string;
+  next_followup_date?: string;
 
   @IsString()
   @IsOptional()
