@@ -135,9 +135,7 @@ const CallLogsPage = () => {
                     <TableRow key={log.id}>
                       <TableCell>{log.studentName}</TableCell>
                       <TableCell>{log.phone}</TableCell>
-                      <TableCell>
-                        {new Date(log.date).toLocaleDateString()}
-                      </TableCell>
+                      <TableCell>{log.date}</TableCell>
                       <TableCell>
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${

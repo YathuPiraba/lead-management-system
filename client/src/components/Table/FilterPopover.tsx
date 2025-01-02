@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 type FilterPopoverProps = {
   column: string;
@@ -43,42 +43,53 @@ const FilterPopover = ({
         <Search className="h-4 w-4" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent className="w-80 p-4">
+    <PopoverContent className="w-72 pb-4 pt-1 pr-1 shadow-lg rounded-md">
+      <div className="flex justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            onValueChange("");
+            onOpenChange(false);
+          }}
+          className="p-1"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="grid gap-4">
-        <div className="space-y-2">
-          <h4 className="font-medium leading-none">{`Filter by ${column}`}</h4>
-          <p className="text-sm text-muted-foreground">
-            Enter your search criteria below
-          </p>
-        </div>
-        {type === "date" ? (
-          <Calendar
-            mode="single"
-            selected={value ? new Date(value) : undefined}
-            onSelect={(date) => onValueChange(date?.toISOString())}
-            className="rounded-md border"
-          />
-        ) : type === "status" ? (
-          <Select value={value} onValueChange={onValueChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : (
-          <div className="grid gap-2">
-            <Input
-              placeholder={`Search ${column}`}
-              value={value || ""}
-              onChange={(e) => onValueChange(e.target.value)}
-              className="h-8"
+        <div className="flex justify-between items-center">
+          {type === "date" ? (
+            <Calendar
+              mode="single"
+              selected={value ? new Date(value) : undefined}
+              onSelect={(date) => {
+                onValueChange(date?.toISOString());
+              }}
+              className="rounded-md border"
             />
-          </div>
-        )}
+          ) : type === "status" ? (
+            <Select value={value} onValueChange={onValueChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="Completed">Completed</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="grid gap-2">
+              <Input
+                placeholder={`Search ${column}`}
+                value={value || ""}
+                onChange={(e) => onValueChange(e.target.value)}
+                className="h-8 p-5 w-60"
+              />
+            </div>
+          )}
+        </div>
       </div>
     </PopoverContent>
   </Popover>
