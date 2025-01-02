@@ -23,10 +23,10 @@ export class CallLog {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'timestamp' })
   call_date: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   next_followup_date: Date;
 
   @Column({ type: 'text', nullable: true })

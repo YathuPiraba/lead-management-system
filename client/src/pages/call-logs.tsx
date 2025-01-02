@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,19 +8,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
+import { Loader } from "lucide-react";
 import { CallLogType, getCallLogs } from "@/lib/call-logs.api";
+import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
+import FilterPopover from "@/components/Table/FilterPopover";
 
 const CallLogsPage = () => {
   const [loading, setLoading] = useState(true);
-  const [callLogs, setCallLogs] = React.useState<CallLogType[]>([]);
-  const [error, setError] = React.useState<string | null>(null);
+  const [callLogs, setCallLogs] = useState<CallLogType[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    studentName: "",
+    phone: "",
+    status: "",
+    notes: "",
+    date: undefined as string | undefined,
+  });
+  const [openPopover, setOpenPopover] = useState<{ [key: string]: boolean }>({
+    studentName: false,
+    phone: false,
+    date: false,
+    status: false,
+    notes: false,
+  });
 
   const fetchCallLogs = async () => {
     try {
-      const res = await getCallLogs();
+      const res = await getCallLogs({
+        page: 1,
+        limit: 10,
+        ...filters,
+      });
       setCallLogs(res.data);
       setLoading(false);
     } catch (err) {
@@ -33,12 +50,38 @@ const CallLogsPage = () => {
 
   useEffect(() => {
     fetchCallLogs();
-  }, []);
+  }, [filters]);
+
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const togglePopover = (column: string) => {
+    setOpenPopover((prev) => {
+      const newState = Object.keys(prev).reduce(
+        (acc, key) => ({
+          ...acc,
+          [key]: false,
+        }),
+        prev
+      );
+
+      return {
+        ...newState,
+        [column]: !prev[column as keyof typeof prev],
+      };
+    });
+  };
 
   if (loading) {
-    <div className="flex justify-center items-center h-40">
-      <Loader />
-    </div>;
+    return (
+      <div className="flex justify-center items-center h-40">
+        <Loader className="animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -47,56 +90,71 @@ const CallLogsPage = () => {
         <h1 className="text-2xl font-bold">Call Logs</h1>
         <AddCallLogsDialog fetchCallLogs={fetchCallLogs} />
       </div>
-
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Calls</CardTitle>
-          <div className="flex gap-4 mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-              <Input placeholder="Search calls..." className="pl-8" />
-            </div>
-            <Button variant="outline">Filter</Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {error ? (
-            <p className="text-red-500">{error}</p>
+            <p className="text-red-500 p-4">{error}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Phone Number</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {callLogs.map((log: any) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-medium">
-                      {log.studentName}
-                    </TableCell>
-                    <TableCell>{log.phone}</TableCell>
-                    <TableCell>{log.date}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          log.status === "Completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {log.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{log.notes}</TableCell>
+            <div className="relative overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {Object.entries({
+                      studentName: "Student Name",
+                      phone: "Phone Number",
+                      date: "Date",
+                      status: "Status",
+                      notes: "Notes",
+                    }).map(([key, label]) => (
+                      <TableHead key={key} className="whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {label}
+                          <FilterPopover
+                            column={key}
+                            type={
+                              key === "date"
+                                ? "date"
+                                : key === "status"
+                                ? "status"
+                                : "text"
+                            }
+                            value={filters[key as keyof typeof filters]}
+                            onValueChange={(value) =>
+                              handleFilterChange(key, value)
+                            }
+                            open={openPopover[key]}
+                            onOpenChange={(open) => togglePopover(key)}
+                          />
+                        </div>
+                      </TableHead>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {callLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell>{log.studentName}</TableCell>
+                      <TableCell>{log.phone}</TableCell>
+                      <TableCell>
+                        {new Date(log.date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            log.status === "Completed"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
+                        >
+                          {log.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>{log.notes}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
