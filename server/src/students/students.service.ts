@@ -27,10 +27,11 @@ export class StudentsService {
       student: savedStudent,
       followup_count: 1,
       user: { id: callLog.userId },
-      next_followup_date: callLog.nextFollowupDate
-        ? callLog.nextFollowupDate
+      next_followup_date: callLog.next_followup_date
+        ? callLog.next_followup_date
         : null,
     });
+
     const savedCallLog = await this.callLogRepository.save(newCallLog);
 
     return { student: savedStudent, callLog: savedCallLog };

@@ -37,7 +37,13 @@ export type ApiMetadata = {
 };
 
 export const getCallLogs = async (
-  params?: PaginationParams
+  params?: PaginationParams & {
+    studentName?: string;
+    phone?: string;
+    date?: string;
+    status?: string;
+    notes?: string;
+  }
 ): Promise<PaginatedApiResponse<CallLogType>> => {
   try {
     const response = await apiClient.get<
@@ -46,6 +52,11 @@ export const getCallLogs = async (
       params: {
         page: params?.page || 1,
         limit: params?.limit || 10,
+        studentName: params?.studentName,
+        phone: params?.phone,
+        date: params?.date,
+        status: params?.status,
+        notes: params?.notes,
       },
     });
 
