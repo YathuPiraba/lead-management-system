@@ -39,7 +39,7 @@ interface AuthState {
   temporaryToken: string | null;
 
   // Actions
-  login: (userName: string, password: string) => Promise<LoginResponse>;
+  login: (userName: string, password: string) => Promise<LoginResponse | null>;
   logout: () => Promise<void>;
   fetchUserDetails: () => Promise<void>;
   resetState: () => void;
@@ -101,8 +101,7 @@ export const useAuthStore = create<AuthState>()(
             apiClient.post("/users/login", { userName, password })
           );
 
-          const { isFirstLogin, accessToken, temporaryToken } =
-            response;
+          const { isFirstLogin, accessToken, temporaryToken } = response;
 
           if (isFirstLogin && temporaryToken) {
             // Store temporary token for password change request
@@ -129,7 +128,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             temporaryToken: null,
           });
-          throw error;
+          console.error(error);
+          return null;
         }
       },
 
@@ -248,7 +248,6 @@ if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("session:expired"));
     }
   }, 60000);
-
 }
 
 export const useAuth = () => useAuthStore();

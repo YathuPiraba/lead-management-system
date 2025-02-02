@@ -33,6 +33,9 @@ const LoginPage = () => {
 
     try {
       const response = await login(userName, password);
+      if (!response) {
+        return;
+      }
       if (response.isFirstLogin) {
         toast.success(response.message);
         showModal();
@@ -40,9 +43,9 @@ const LoginPage = () => {
         toast.success(response.message);
         router.push("/dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      setErrorMessage("Invalid credentials or something went wrong.");
+      toast.error(error.response?.data?.message || "Invalid credentials");
     } finally {
       setIsLoading(false);
     }
