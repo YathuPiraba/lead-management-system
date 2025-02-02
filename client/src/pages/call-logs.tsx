@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader } from "lucide-react";
-import { CallLogType, getCallLogs } from "@/lib/call-logs.api";
+import { CallLogType, getCallLogs, PaginationInfo } from "@/lib/call-logs.api";
 import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
 import FilterPopover from "@/components/Table/FilterPopover";
 
@@ -31,14 +31,23 @@ const CallLogsPage = () => {
     status: false,
     notes: false,
   });
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
 
-  const fetchCallLogs = async () => {
+  const fetchCallLogs = async (page: number = 1) => {
     try {
       const res = await getCallLogs({
-        page: 1,
-        limit: 10,
+        page,
+        limit: pagination.itemsPerPage,
         ...filters,
       });
+      setPagination(res.pagination);
       setCallLogs(res.data);
       setLoading(false);
     } catch (err) {
@@ -49,8 +58,9 @@ const CallLogsPage = () => {
   };
 
   useEffect(() => {
-    fetchCallLogs();
-  }, [filters]);
+    fetchCallLogs(pagination.currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, pagination.currentPage]);
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({
@@ -123,7 +133,7 @@ const CallLogsPage = () => {
                               handleFilterChange(key, value)
                             }
                             open={openPopover[key]}
-                            onOpenChange={(open) => togglePopover(key)}
+                            onOpenChange={() => togglePopover(key)}
                           />
                         </div>
                       </TableHead>
