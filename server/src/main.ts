@@ -14,7 +14,7 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.get<string>('FRONTEND_URL') || '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true, // Enable credentials if using cookies
+    credentials: true,
   });
 
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');

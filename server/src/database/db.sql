@@ -1,0 +1,6 @@
+INSERT INTO roles (name)
+SELECT 'Admin'
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'Admin')
+UNION ALL
+SELECT 'Staff'
+WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'Staff');

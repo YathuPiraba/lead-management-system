@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,7 +14,8 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { EnhancedRedisModule } from './redis/redis.module';
-
+import { DataSource } from 'typeorm';
+import { seed } from './database/seeders/seed';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -60,4 +61,17 @@ import { EnhancedRedisModule } from './redis/redis.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  constructor(
+    private dataSource: DataSource,
+    private configService: ConfigService,
+  ) {}
+
+  async onApplicationBootstrap() {
+    try {
+      await seed(this.dataSource, this.configService);
+    } catch (error) {
+      console.error('Error during database seeding:', error);
+    }
+  }
+}
