@@ -84,7 +84,7 @@ const Navbar = () => {
                       alt={user.userName || "Profile"}
                     />
                   ) : (
-                    <AvatarFallback>
+                    <AvatarFallback className="text-black hover:border-black">
                       {user?.userName?.charAt(0) || "U"}
                     </AvatarFallback>
                   )}
