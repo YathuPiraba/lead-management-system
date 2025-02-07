@@ -68,7 +68,6 @@ const CallLogsPage = () => {
       ...prev,
       [key]: value,
     }));
-    // Reset to first page when filters change
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
@@ -101,6 +100,15 @@ const CallLogsPage = () => {
     );
   }
 
+  const columnWidths = {
+    no: "w-16",
+    studentName: "w-48",
+    phone: "w-44",
+    date: "w-52",
+    status: "w-28",
+    notes: "w-96",
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -117,15 +125,23 @@ const CallLogsPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className={`${columnWidths.no} pl-3`}>
+                        No
+                      </TableHead>
                       {Object.entries({
                         studentName: "Student Name",
                         phone: "Phone Number",
-                        date: "Date",
+                        date: "Date - Time",
                         status: "Status",
                         notes: "Notes",
                       }).map(([key, label]) => (
-                        <TableHead key={key} className="whitespace-nowrap">
-                          <div className="flex items-center gap-2">
+                        <TableHead
+                          key={key}
+                          className={`${
+                            columnWidths[key as keyof typeof columnWidths]
+                          } whitespace-nowrap`}
+                        >
+                          <div className="flex items-center justify-between">
                             {label}
                             <FilterPopover
                               column={key}
@@ -149,12 +165,26 @@ const CallLogsPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {callLogs.map((log) => (
+                    {callLogs.map((log, index) => (
                       <TableRow key={log.id}>
-                        <TableCell>{log.studentName}</TableCell>
-                        <TableCell>{log.phone}</TableCell>
-                        <TableCell>{log.date}</TableCell>
-                        <TableCell>
+                        <TableCell className={columnWidths.no}>
+                          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-800 font-semibold">
+                            {(pagination.currentPage - 1) *
+                              pagination.itemsPerPage +
+                              index +
+                              1}
+                          </div>
+                        </TableCell>
+                        <TableCell className={columnWidths.studentName}>
+                          {log.studentName}
+                        </TableCell>
+                        <TableCell className={columnWidths.phone}>
+                          {log.phone}
+                        </TableCell>
+                        <TableCell className={columnWidths.date}>
+                          {log.date}
+                        </TableCell>
+                        <TableCell className={columnWidths.status}>
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
                               log.status === "Completed"
@@ -165,14 +195,15 @@ const CallLogsPage = () => {
                             {log.status}
                           </span>
                         </TableCell>
-                        <TableCell>{log.notes}</TableCell>
+                        <TableCell className={columnWidths.notes}>
+                          {log.notes}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
 
-              {/* Pagination Controls */}
               <Pagination
                 currentPage={pagination.currentPage}
                 totalPages={pagination.totalPages}
