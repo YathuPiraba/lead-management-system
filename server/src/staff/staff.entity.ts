@@ -16,9 +16,6 @@ export class Staff {
   @JoinColumn()
   user: User;
 
-  @Column({ length: 50 })
-  role: string;
-
   @Column({ type: 'enum', enum: ['Active', 'Inactive'], default: 'Active' })
   status: string;
 
