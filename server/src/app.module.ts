@@ -16,6 +16,9 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { EnhancedRedisModule } from './redis/redis.module';
 import { DataSource } from 'typeorm';
 import { seed } from './database/seeders/seed';
+import { StaffModule } from './staff/staff.module';
+import { LeadsModule } from './leads/leads.module';
+import { PerformanceModule } from './performance/performance.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -51,6 +54,9 @@ import { seed } from './database/seeders/seed';
     StudentsModule,
     CallLogsModule,
     AuthModule,
+    StaffModule,
+    LeadsModule,
+    PerformanceModule,
   ],
   controllers: [AppController],
   providers: [
