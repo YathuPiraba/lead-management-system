@@ -12,6 +12,7 @@ import { Loader } from "lucide-react";
 import { CallLogType, getCallLogs, PaginationInfo } from "@/lib/call-logs.api";
 import AddCallLogsDialog from "@/components/call-logs/AddCallLogs";
 import FilterPopover from "@/components/Table/FilterPopover";
+import Pagination from "@/components/Pagination";
 
 const CallLogsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,8 @@ const CallLogsPage = () => {
       ...prev,
       [key]: value,
     }));
+    // Reset to first page when filters change
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const togglePopover = (column: string) => {
@@ -84,6 +87,10 @@ const CallLogsPage = () => {
         [column]: !prev[column as keyof typeof prev],
       };
     });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => ({ ...prev, currentPage: newPage }));
   };
 
   if (loading) {
@@ -105,64 +112,77 @@ const CallLogsPage = () => {
           {error ? (
             <p className="text-red-500 p-4">{error}</p>
           ) : (
-            <div className="relative overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {Object.entries({
-                      studentName: "Student Name",
-                      phone: "Phone Number",
-                      date: "Date",
-                      status: "Status",
-                      notes: "Notes",
-                    }).map(([key, label]) => (
-                      <TableHead key={key} className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {label}
-                          <FilterPopover
-                            column={key}
-                            type={
-                              key === "date"
-                                ? "date"
-                                : key === "status"
-                                ? "status"
-                                : "text"
-                            }
-                            value={filters[key as keyof typeof filters]}
-                            onValueChange={(value) =>
-                              handleFilterChange(key, value)
-                            }
-                            open={openPopover[key]}
-                            onOpenChange={() => togglePopover(key)}
-                          />
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {callLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell>{log.studentName}</TableCell>
-                      <TableCell>{log.phone}</TableCell>
-                      <TableCell>{log.date}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            log.status === "Completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {log.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>{log.notes}</TableCell>
+            <>
+              <div className="relative overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {Object.entries({
+                        studentName: "Student Name",
+                        phone: "Phone Number",
+                        date: "Date",
+                        status: "Status",
+                        notes: "Notes",
+                      }).map(([key, label]) => (
+                        <TableHead key={key} className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {label}
+                            <FilterPopover
+                              column={key}
+                              type={
+                                key === "date"
+                                  ? "date"
+                                  : key === "status"
+                                  ? "status"
+                                  : "text"
+                              }
+                              value={filters[key as keyof typeof filters]}
+                              onValueChange={(value) =>
+                                handleFilterChange(key, value)
+                              }
+                              open={openPopover[key]}
+                              onOpenChange={() => togglePopover(key)}
+                            />
+                          </div>
+                        </TableHead>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {callLogs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell>{log.studentName}</TableCell>
+                        <TableCell>{log.phone}</TableCell>
+                        <TableCell>{log.date}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              log.status === "Completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {log.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>{log.notes}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination Controls */}
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                itemsPerPage={pagination.itemsPerPage}
+                hasNextPage={pagination.hasNextPage}
+                hasPreviousPage={pagination.hasPreviousPage}
+                onPageChange={handlePageChange}
+              />
+            </>
           )}
         </CardContent>
       </Card>
