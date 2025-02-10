@@ -18,7 +18,6 @@ const StaffPage = () => {
     {
       id: 1,
       name: "David Wilson",
-      role: "Lead Generator",
       email: "david@example.com",
       phone: "+1 234-567-8905",
       status: "Active",
@@ -28,7 +27,6 @@ const StaffPage = () => {
     {
       id: 2,
       name: "Sarah Brown",
-      role: "Sales Manager",
       email: "sarah@example.com",
       phone: "+1 234-567-8906",
       status: "Active",
@@ -36,8 +34,6 @@ const StaffPage = () => {
       assignedLeads: 32,
     },
   ];
-
-
 
   return (
     <div className="p-6 space-y-6">
@@ -95,7 +91,6 @@ const StaffPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                {/* <TableHead>Role</TableHead> */}
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
