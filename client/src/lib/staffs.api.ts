@@ -1,0 +1,47 @@
+import apiClient from "./axios";
+import { ApiResponse } from "./axios";
+import {
+  PaginationParams,
+  PaginationInfo,
+  PaginatedApiResponse,
+} from "./call-logs.api";
+
+export interface StaffResponse {
+  id: number;
+  staffId: number | null;
+  status: "Active" | "Inactive" | "N/A";
+  performance: "High" | "Medium" | "Low" | "N/A";
+  assignedLeads: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string | "N/A";
+  };
+}
+
+export const getStaffMembers = async (
+  params?: PaginationParams & { search?: string }
+): Promise<PaginatedApiResponse<StaffResponse>> => {
+  try {
+    const response = await apiClient.get<
+      ApiResponse<{ data: StaffResponse[]; pagination: PaginationInfo }>
+    >("/staff", {
+      params: {
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+        search: params?.search,
+      },
+    });
+
+    const responseData = response.data;
+    const { data, pagination } = responseData.data;
+
+    return {
+      data,
+      pagination,
+    };
+  } catch (error) {
+    throw error;
+  }
+};

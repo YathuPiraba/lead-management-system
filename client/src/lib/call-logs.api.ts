@@ -29,13 +29,6 @@ export type PaginatedApiResponse<T> = {
   pagination: PaginationInfo;
 };
 
-export type ApiMetadata = {
-  currentPage?: number;
-  totalPages?: number;
-  totalItems?: number;
-  itemsPerPage?: number;
-};
-
 export const getCallLogs = async (
   params?: PaginationParams & {
     studentName?: string;

@@ -55,7 +55,11 @@ export class StaffService {
     };
   }
 
-  async getAllStaffMembers(search?: string): Promise<StaffResponseDto[]> {
+  async getAllStaffMembers(
+    page = 1,
+    limit = 10,
+    search?: string,
+  ): Promise<{ data: StaffResponseDto[]; pagination: any }> {
     try {
       // First get all users with role_id = 2
       const queryBuilder = this.userRepository
@@ -70,7 +74,12 @@ export class StaffService {
         );
       }
 
-      const users = await queryBuilder.getMany();
+      const total = await queryBuilder.getCount();
+
+      const users = await queryBuilder
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany();
 
       // Try to get staff data if available
       let staffData = [];
@@ -94,9 +103,8 @@ export class StaffService {
       );
 
       // Map users to response DTO
-      return users.map((user) => {
+      const formattedStaff = users.map((user) => {
         const staffRecord = staffMap.get(user.id);
-
         return {
           id: user.id,
           staffId: staffRecord?.id || null,
@@ -111,9 +119,21 @@ export class StaffService {
           },
         };
       });
+
+      return {
+        data: formattedStaff,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+          hasPreviousPage: page > 1,
+          totalItems: total,
+          itemsPerPage: limit,
+        },
+      };
     } catch (error) {
       console.error('Error in getAllStaffMembers:', error);
-      return [];
+      return { data: [], pagination: {} };
     }
   }
 

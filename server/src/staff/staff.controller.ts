@@ -13,11 +13,23 @@ export class StaffController {
   }
 
   @Get()
-  @Public()
   async getAllStaffMembers(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
     @Query('search') search?: string,
-  ): Promise<StaffResponseDto[]> {
-    return this.staffService.getAllStaffMembers(search);
+  ): Promise<any> {
+    const response = await this.staffService.getAllStaffMembers(
+      page,
+      limit,
+      search,
+    );
+    return {
+      data: response.data,
+      pagination: response.pagination,
+      message: 'Staff members fetched successfully',
+      status: 200,
+      code: 'SUCCESS',
+    };
   }
 
   @Get(':id')
