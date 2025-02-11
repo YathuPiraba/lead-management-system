@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +12,18 @@ import {
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import AddStaffDialog from "@/components/staff/AddStaff";
+import { getStaffMembers } from "@/lib/staffs.api";
 
 const StaffPage = () => {
+  const fetchStaffList = async () => {
+    const res = await getStaffMembers();
+    console.log(res, "response");
+  };
+
+  useEffect(() => {
+    fetchStaffList();
+  }, []);
+
   const staffMembers = [
     {
       id: 1,

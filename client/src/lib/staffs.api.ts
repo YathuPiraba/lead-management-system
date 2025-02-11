@@ -34,8 +34,7 @@ export const getStaffMembers = async (
       },
     });
 
-    const responseData = response.data;
-    const { data, pagination } = responseData.data;
+    const { data, pagination } = response.data.data;
 
     return {
       data,

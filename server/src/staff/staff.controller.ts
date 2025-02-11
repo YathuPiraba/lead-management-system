@@ -9,7 +9,13 @@ export class StaffController {
 
   @Get('stats')
   async getStaffStats() {
-    return this.staffService.getStaffStats();
+    const response = await this.staffService.getStaffStats();
+    return {
+      data: response,
+      message: 'Staff Stats fetched successfully',
+      status: 200,
+      code: 'SUCCESS',
+    };
   }
 
   @Get()
@@ -24,8 +30,7 @@ export class StaffController {
       search,
     );
     return {
-      data: response.data,
-      pagination: response.pagination,
+      data: response,
       message: 'Staff members fetched successfully',
       status: 200,
       code: 'SUCCESS',
