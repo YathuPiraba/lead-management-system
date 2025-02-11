@@ -183,7 +183,7 @@ const StaffPage = () => {
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Search staff..."
+                placeholder="Search staff...(name/mail)"
                 className="pl-8"
                 value={searchQuery}
                 onChange={handleSearch}

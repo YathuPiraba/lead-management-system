@@ -29,7 +29,7 @@ interface AddStaffProps {
   fetchStat: () => void;
 }
 
-const AddStaffDialog: React.FC<AddStaffProps> = () => {
+const AddStaffDialog: React.FC<AddStaffProps> = ({ fetchStaff, fetchStat }) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StaffFormData>({
     firstName: "",
@@ -101,6 +101,8 @@ const AddStaffDialog: React.FC<AddStaffProps> = () => {
         const successMessage =
           res.message || "Staff member added successfully!";
         toast.success(successMessage);
+        fetchStaff();
+        fetchStat();
       }
       setOpen(false);
       setFormData({ firstName: "", email: "", contactNo: "" });
