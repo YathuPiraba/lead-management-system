@@ -240,7 +240,7 @@ const AddCallLogsDialog: React.FC<AddCallLogsDialogProps> = ({
       };
 
       const res = await addStudentAndCallLog(payload);
-      toast.success(res.message || "Call Log Added Successfully");
+      res && toast.success(res.message || "Call Log Added Successfully");
       fetchCallLogs();
       resetForm();
       setOpen(false);

@@ -24,7 +24,12 @@ interface StaffFormData {
   image?: File;
 }
 
-const AddStaffDialog = () => {
+interface AddStaffProps {
+  fetchStaff: () => void;
+  fetchStat: () => void;
+}
+
+const AddStaffDialog: React.FC<AddStaffProps> = () => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<StaffFormData>({
     firstName: "",
@@ -92,8 +97,11 @@ const AddStaffDialog = () => {
       }
 
       const res = await registerStaff(payload);
-      const successMessage = res.message || "Staff member added successfully!";
-      toast.success(successMessage);
+      if (res) {
+        const successMessage =
+          res.message || "Staff member added successfully!";
+        toast.success(successMessage);
+      }
       setOpen(false);
       setFormData({ firstName: "", email: "", contactNo: "" });
     } catch (error) {

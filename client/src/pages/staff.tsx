@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,50 +12,132 @@ import {
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import AddStaffDialog from "@/components/staff/AddStaff";
-import { getStaffMembers, getStaffStats } from "@/lib/staffs.api";
+import {
+  getStaffMembers,
+  getStaffStats,
+  StaffResponse,
+} from "@/lib/staffs.api";
+import type { PaginationInfo } from "@/lib/call-logs.api";
+import Pagination from "@/components/Pagination";
+
+interface StaffStats {
+  totalStaff: number;
+  averagePerformance: number;
+  totalLeads: number;
+}
+
+interface StatsResponse {
+  data: StaffStats;
+  message: string;
+  status: number;
+  code: string;
+}
 
 const StaffPage = () => {
-  const fetchStaffList = async () => {
-    const res = await getStaffMembers();
-    console.log(res, "response");
+  const [staffMembers, setStaffMembers] = useState<StaffResponse[]>([]);
+  const [staffStats, setStaffStats] = useState<StaffStats>({
+    totalStaff: 0,
+    averagePerformance: 0,
+    totalLeads: 0,
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
+  const fetchStaffList = async (page: number = 1, search?: string) => {
+    try {
+      const response = await getStaffMembers({
+        page,
+        limit: pagination.itemsPerPage,
+        search: search?.trim() || undefined,
+      });
+
+      if (response) {
+        setStaffMembers(response.data);
+        setPagination(response.pagination);
+      }
+    } catch (error) {
+      console.error("Error fetching staff members:", error);
+    }
   };
 
   const fetchStaffStats = async () => {
-    const res = await getStaffStats();
-    console.log(res, "response");
+    try {
+      const response = await getStaffStats();
+      const statsResponse = response as StatsResponse;
+      if (statsResponse) {
+        setStaffStats(statsResponse.data);
+      }
+    } catch (error) {
+      console.error("Error fetching staff stats:", error);
+    }
   };
 
   useEffect(() => {
-    fetchStaffList();
+    fetchStaffList(pagination.currentPage, searchQuery);
+  }, [pagination.currentPage, pagination.itemsPerPage]);
+
+  useEffect(() => {
     fetchStaffStats();
   }, []);
 
-  const staffMembers = [
-    {
-      id: 1,
-      name: "David Wilson",
-      email: "david@example.com",
-      phone: "+1 234-567-8905",
-      status: "Active",
-      performance: "High",
-      assignedLeads: 45,
-    },
-    {
-      id: 2,
-      name: "Sarah Brown",
-      email: "sarah@example.com",
-      phone: "+1 234-567-8906",
-      status: "Active",
-      performance: "Medium",
-      assignedLeads: 32,
-    },
-  ];
+  const getPerformanceStyles = (performance: StaffResponse["performance"]) => {
+    switch (performance) {
+      case "High":
+        return "bg-green-100 text-green-800";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "Low":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusStyles = (status: StaffResponse["status"]) => {
+    switch (status) {
+      case "Active":
+        return "bg-green-100 text-green-800";
+      case "Inactive":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => ({ ...prev, currentPage: newPage }));
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    // Reset to first page when searching
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+
+    // Debounce search requests
+    const timeoutId = setTimeout(() => {
+      fetchStaffList(1, query);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  };
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Staff Management</h1>
-        <AddStaffDialog />
+        <AddStaffDialog
+          fetchStaff={fetchStaffList}
+          fetchStat={fetchStaffStats}
+        />
       </div>
 
       {/* Staff Stats */}
@@ -65,7 +147,7 @@ const StaffPage = () => {
             <CardTitle>Total Staff</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{staffStats.totalStaff}</div>
             <p className="text-sm text-gray-500">Active members</p>
           </CardContent>
         </Card>
@@ -75,7 +157,9 @@ const StaffPage = () => {
             <CardTitle>Average Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">87%</div>
+            <div className="text-2xl font-bold">
+              {staffStats.averagePerformance}%
+            </div>
             <p className="text-sm text-gray-500">This month</p>
           </CardContent>
         </Card>
@@ -85,7 +169,7 @@ const StaffPage = () => {
             <CardTitle>Total Leads Assigned</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">543</div>
+            <div className="text-2xl font-bold">{staffStats.totalLeads}</div>
             <p className="text-sm text-gray-500">Active leads</p>
           </CardContent>
         </Card>
@@ -98,7 +182,12 @@ const StaffPage = () => {
             <CardTitle>Staff Members</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-              <Input placeholder="Search staff..." className="pl-8" />
+              <Input
+                placeholder="Search staff..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={handleSearch}
+              />
             </div>
           </div>
         </CardHeader>
@@ -118,22 +207,25 @@ const StaffPage = () => {
             <TableBody>
               {staffMembers.map((staff) => (
                 <TableRow key={staff.id}>
-                  <TableCell className="font-medium">{staff.name}</TableCell>
-                  {/* <TableCell>{staff.role}</TableCell> */}
-                  <TableCell>{staff.email}</TableCell>
-                  <TableCell>{staff.phone}</TableCell>
+                  <TableCell className="font-medium">
+                    {staff.user.name}
+                  </TableCell>
+                  <TableCell>{staff.user.email}</TableCell>
+                  <TableCell>{staff.user.phone}</TableCell>
                   <TableCell>
-                    <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${getStatusStyles(
+                        staff.status
+                      )}`}
+                    >
                       {staff.status}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        staff.performance === "High"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs ${getPerformanceStyles(
+                        staff.performance
+                      )}`}
                     >
                       {staff.performance}
                     </span>
@@ -148,6 +240,15 @@ const StaffPage = () => {
               ))}
             </TableBody>
           </Table>
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            hasNextPage={pagination.hasNextPage}
+            hasPreviousPage={pagination.hasPreviousPage}
+            onPageChange={handlePageChange}
+          />
         </CardContent>
       </Card>
     </div>

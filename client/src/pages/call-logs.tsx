@@ -48,8 +48,10 @@ const CallLogsPage = () => {
         limit: pagination.itemsPerPage,
         ...filters,
       });
-      setPagination(res.pagination);
-      setCallLogs(res.data);
+      if (res) {
+        setPagination(res.pagination);
+        setCallLogs(res.data);
+      }
       setLoading(false);
     } catch (err) {
       setError("Failed to load call logs");
