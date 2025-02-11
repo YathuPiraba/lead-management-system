@@ -18,41 +18,77 @@ export class StaffService {
   ) {}
 
   async getStaffStats() {
-    const totalStaff = await this.userRepository.count({
-      where: {
-        role: { id: 2 },
-      },
-    });
+    try {
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.role', 'role')
+        .where('role.id = :roleId', { roleId: 2 })
+        .getMany();
 
-    // Calculate average performance using only existing staff records
-    const staffPerformance = await this.staffRepository
-      .createQueryBuilder('staff')
-      .innerJoin('staff.user', 'user')
-      .where('user.role.id = :roleId', { roleId: 2 })
-      .andWhere('staff.status = :status', { status: 'Active' })
-      .getMany();
+      if (!users.length) {
+        return {
+          totalStaff: 0,
+          averagePerformance: 0,
+          totalLeads: 0,
+        };
+      }
 
-    const performanceMap = {
-      High: 100,
-      Medium: 70,
-      Low: 40,
-    };
+      const performanceMap = {
+        High: 100,
+        Medium: 70,
+        Low: 40,
+      };
 
-    const averagePerformance =
-      staffPerformance.length > 0
-        ? staffPerformance.reduce(
-            (acc, staff) => acc + performanceMap[staff.performance],
-            0,
-          ) / staffPerformance.length
-        : 0;
+      let staffData = [];
+      try {
+        staffData = await this.staffRepository.find({
+          relations: ['user'],
+          where: {
+            user: {
+              id: In(users.map((u) => u.id)),
+            },
+          },
+        });
+      } catch {
+        // If staff data fetch fails, continue with empty array
+      }
 
-    const totalLeads = await this.leadRepository.count();
+      // Step 3: Calculate average performance for active staff
+      const activeStaff = staffData.filter(
+        (staff) => staff.status === 'Active',
+      );
 
-    return {
-      totalStaff,
-      averagePerformance: Math.round(averagePerformance),
-      totalLeads,
-    };
+      const averagePerformance =
+        activeStaff.length > 0
+          ? Math.round(
+              activeStaff.reduce(
+                (acc, staff) => acc + performanceMap[staff.performance],
+                0,
+              ) / activeStaff.length,
+            )
+          : 0;
+
+      // Step 4: Get total leads, return 0 if query fails
+      let totalLeads = 0;
+      try {
+        totalLeads = await this.leadRepository.count();
+      } catch {
+        // If leads count fails, keep it as 0
+      }
+
+      // Step 5: Return stats with actual staff count
+      return {
+        totalStaff: users.length,
+        averagePerformance,
+        totalLeads,
+      };
+    } catch {
+      return {
+        totalStaff: 0,
+        averagePerformance: 0,
+        totalLeads: 0,
+      };
+    }
   }
 
   async getAllStaffMembers(

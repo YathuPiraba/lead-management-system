@@ -12,7 +12,7 @@ import {
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import AddStaffDialog from "@/components/staff/AddStaff";
-import { getStaffMembers } from "@/lib/staffs.api";
+import { getStaffMembers, getStaffStats } from "@/lib/staffs.api";
 
 const StaffPage = () => {
   const fetchStaffList = async () => {
@@ -20,8 +20,14 @@ const StaffPage = () => {
     console.log(res, "response");
   };
 
+  const fetchStaffStats = async () => {
+    const res = await getStaffStats();
+    console.log(res, "response");
+  };
+
   useEffect(() => {
     fetchStaffList();
+    fetchStaffStats();
   }, []);
 
   const staffMembers = [

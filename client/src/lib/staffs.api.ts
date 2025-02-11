@@ -22,7 +22,7 @@ export interface StaffResponse {
 
 export const getStaffMembers = async (
   params?: PaginationParams & { search?: string }
-): Promise<PaginatedApiResponse<StaffResponse>> => {
+): Promise<PaginatedApiResponse<StaffResponse> | undefined> => {
   try {
     const response = await apiClient.get<
       ApiResponse<{ data: StaffResponse[]; pagination: PaginationInfo }>
@@ -36,11 +36,18 @@ export const getStaffMembers = async (
 
     const { data, pagination } = response.data.data;
 
-    return {
-      data,
-      pagination,
-    };
+    return { data, pagination };
   } catch (error) {
-    throw error;
+    console.error(error);
+    return undefined;
+  }
+};
+
+export const getStaffStats = async () => {
+  try {
+    const response = await apiClient.get<ApiResponse>(`/staff/stats`);
+    return response.data;
+  } catch (err) {
+    console.error(err);
   }
 };
