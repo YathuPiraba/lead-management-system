@@ -37,7 +37,7 @@ export const getCallLogs = async (
     status?: string;
     notes?: string;
   }
-): Promise<PaginatedApiResponse<CallLogType>> => {
+): Promise<PaginatedApiResponse<CallLogType> | undefined> => {
   try {
     const response = await apiClient.get<
       ApiResponse<{ data: CallLogType[]; pagination: PaginationInfo }>
@@ -73,6 +73,7 @@ export const getCallLogs = async (
       pagination,
     };
   } catch (error) {
-    throw error;
+    console.error(error);
+    return undefined; // Ensure the function always returns a value
   }
 };

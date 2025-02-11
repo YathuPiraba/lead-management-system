@@ -101,10 +101,18 @@ export const useAuthStore = create<AuthState>()(
             apiClient.post("/users/login", { userName, password })
           );
 
+          if (!response) {
+            set({
+              isLoading: false,
+              isAuthenticated: false,
+              temporaryToken: null,
+            });
+            return null; // Return null if the response is invalid
+          }
+
           const { isFirstLogin, accessToken, temporaryToken } = response;
 
           if (isFirstLogin && temporaryToken) {
-            // Store temporary token for password change request
             set({
               temporaryToken,
               isAuthenticated: false,
@@ -149,6 +157,11 @@ export const useAuthStore = create<AuthState>()(
             )
           );
 
+          if (!response) {
+            set({ isLoading: false });
+            return; // Stop execution if response is null
+          }
+
           if (response.accessToken) {
             localStorage.setItem(TOKEN_STORAGE_KEY, response.accessToken);
             set({
@@ -162,7 +175,6 @@ export const useAuthStore = create<AuthState>()(
           if (error instanceof ApiError && error.status === 401) {
             get().resetState();
           }
-          throw error;
         } finally {
           set({ isLoading: false });
         }
@@ -185,12 +197,14 @@ export const useAuthStore = create<AuthState>()(
             apiClient.get("/users/user-details")
           );
 
+          if (!res) {
+            set({ isLoading: false });
+            return;
+          }
+
           const user = res.user;
           set({
-            user: {
-              ...user,
-              roleId: user.role.id,
-            },
+            user: { ...user, roleId: user.role.id },
             isAuthenticated: true,
             isLoading: false,
             lastActivity: Date.now(),
@@ -200,7 +214,6 @@ export const useAuthStore = create<AuthState>()(
             get().resetState();
           }
           set({ isLoading: false });
-          throw error;
         }
       },
 

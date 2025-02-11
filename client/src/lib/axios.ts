@@ -188,20 +188,19 @@ apiClient.interceptors.response.use(
 
 export const handleApiResponse = async <T>(
   promise: Promise<AxiosResponse<ApiResponse<T>>>
-): Promise<T> => {
+): Promise<T | null> => {
   try {
     const response = await promise;
     return response.data as T;
   } catch (error) {
     if (error instanceof ApiError) {
-      // Don't show toast for session expiration
       if (error.code !== "SESSION_EXPIRED") {
         toast.error(error.message);
       }
-      throw error;
+    } else {
+      toast.error("Unknown error occurred. Please try again.");
     }
-    toast.error("Unknown error occurred. Please try again.");
-    throw new ApiError(500, "Unknown error occurred", error);
+    return null; // Ensuring it always returns a value
   }
 };
 

@@ -9,7 +9,7 @@ export const getUserData = async (userId: string) => {
     );
     return response.data.data;
   } catch (error) {
-    throw error;
+    console.error(error);
   }
 };
 
@@ -22,7 +22,7 @@ export const registerStaff = async (userData: FormData) => {
     );
     return response.data;
   } catch (error) {
-    throw error;
+    console.error(error);
   }
 };
 
@@ -38,7 +38,7 @@ export const updateUser = async (
     );
     return response.data.data;
   } catch (error) {
-    throw error; // Re-throw error for further handling by the caller
+    console.error(error); // Re-throw error for further handling by the caller
   }
 };
 
@@ -48,7 +48,7 @@ export const deleteUser = async (userId: string) => {
     await apiClient.delete(`/users/${userId}`);
     return true; // Return true if the deletion was successful
   } catch (error) {
-    throw error; // Re-throw error for further handling by the caller
+    console.error(error); // Re-throw error for further handling by the caller
   }
 };
 
@@ -59,6 +59,6 @@ export const addStudentAndCallLog = async (data: object) => {
     >("/students/add-student-call-log", data);
     return response.data;
   } catch (error) {
-    throw error; // Re-throw error for further handling by the caller
+    console.error(error); // Re-throw error for further handling by the caller
   }
 };
