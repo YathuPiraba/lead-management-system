@@ -1,15 +1,20 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateCallLogsAndFollowups1728284156408
+export class CreateCallLogsAndFollowups1728284156409
   implements MigrationInterface
 {
-  name = 'CreateCallLogsAndFollowups1728284156408';
+  name = 'CreateCallLogsAndFollowups1728284156409';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create ENUM type for status
-    await queryRunner.query(
-      `CREATE TYPE "call_log_status_enum" AS ENUM ('open', 'closed')`,
-    );
+    await queryRunner.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'call_log_status_enum') THEN
+          CREATE TYPE "call_log_status_enum" AS ENUM ('open', 'closed');
+        END IF;
+      END $$;
+    `);
 
     // Create call_logs table
     await queryRunner.query(`
@@ -37,6 +42,7 @@ export class CreateCallLogsAndFollowups1728284156408
     await queryRunner.query(`
       CREATE TABLE "call_log_followups" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "leadNo" character varying NOT NULL UNIQUE,
         "callLogId" uuid,
         "followup_date" TIMESTAMP NOT NULL,
         "assignedStaffId" integer,

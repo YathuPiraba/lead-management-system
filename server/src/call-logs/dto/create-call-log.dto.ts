@@ -28,7 +28,7 @@ export class CreateCallLogDto {
 
   @IsBoolean()
   @IsOptional()
-  repeatFollowup?: boolean;
+  repeat_followup?: boolean;
 
   @IsBoolean()
   @IsOptional()

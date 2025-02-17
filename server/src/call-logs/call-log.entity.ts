@@ -28,9 +28,6 @@ export class CallLog {
   @Column({ type: 'timestamp' })
   call_date: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  next_followup_date: Date;
-
   @Column({ type: 'text', nullable: true })
   notes: string;
 
