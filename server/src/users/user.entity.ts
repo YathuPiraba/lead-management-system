@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { Role } from './role.entity';
+import { CallLogFollowup } from '../calllog_followups/calllog_followups.entity';
 
 @Entity('users')
 export class User {
@@ -52,4 +54,9 @@ export class User {
 
   @Column({ default: true })
   isFirstLogin: boolean;
+
+  @OneToMany(() => CallLogFollowup, (followup) => followup.callLog, {
+    cascade: true,
+  })
+  followups: CallLogFollowup[];
 }

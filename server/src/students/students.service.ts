@@ -30,6 +30,7 @@ export class StudentsService {
       next_followup_date: callLog.next_followup_date
         ? callLog.next_followup_date
         : null,
+      status: callLog.next_followup_date ? 'open' : 'closed',
     });
 
     const savedCallLog = await this.callLogRepository.save(newCallLog);

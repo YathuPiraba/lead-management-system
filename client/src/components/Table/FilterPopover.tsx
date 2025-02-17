@@ -77,6 +77,7 @@ const FilterPopover = ({
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Closed">Closed</SelectItem>
               </SelectContent>
             </Select>
           ) : (

@@ -16,19 +16,15 @@ const FollowupsPage = () => {
     {
       id: 1,
       studentName: "Mike Johnson",
-      type: "Call",
       dueDate: "2024-03-29",
       status: "Pending",
-      priority: "High",
       assignedTo: "Sarah Wilson",
     },
     {
       id: 2,
       studentName: "Emily Brown",
-      type: "Email",
       dueDate: "2024-03-30",
       status: "Completed",
-      priority: "Medium",
       assignedTo: "John Smith",
     },
     // Add more sample data as needed
@@ -87,10 +83,8 @@ const FollowupsPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Student Name</TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
                 <TableHead>Assigned To</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -101,7 +95,6 @@ const FollowupsPage = () => {
                   <TableCell className="font-medium">
                     {followup.studentName}
                   </TableCell>
-                  <TableCell>{followup.type}</TableCell>
                   <TableCell>{followup.dueDate}</TableCell>
                   <TableCell>
                     <span
@@ -112,17 +105,6 @@ const FollowupsPage = () => {
                       }`}
                     >
                       {followup.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        followup.priority === "High"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                    >
-                      {followup.priority}
                     </span>
                   </TableCell>
                   <TableCell>{followup.assignedTo}</TableCell>

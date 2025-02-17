@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Student } from '../students/student.entity';
 import { User } from '../users/user.entity';
+import { CallLogFollowup } from '../calllog_followups/calllog_followups.entity';
 
 @Entity('call_logs')
 export class CallLog {
@@ -49,4 +51,9 @@ export class CallLog {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => CallLogFollowup, (followup) => followup.callLog, {
+    cascade: true,
+  })
+  followups: CallLogFollowup[];
 }

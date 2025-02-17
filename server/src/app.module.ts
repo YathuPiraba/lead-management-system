@@ -19,6 +19,7 @@ import { seed } from './database/seeders/seed';
 import { StaffModule } from './staff/staff.module';
 import { LeadsModule } from './leads/leads.module';
 import { PerformanceModule } from './performance/performance.module';
+import { CalllogFollowupsModule } from './calllog_followups/calllog_followups.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -57,6 +58,7 @@ import { PerformanceModule } from './performance/performance.module';
     StaffModule,
     LeadsModule,
     PerformanceModule,
+    CalllogFollowupsModule,
   ],
   controllers: [AppController],
   providers: [
