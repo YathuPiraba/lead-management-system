@@ -14,14 +14,13 @@ import { Role } from './role.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Redis } from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
 import { generateOneTimePassword } from 'src/utils/generate-password';
 import { generateUsername } from 'src/utils/generate-username';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { TokenService } from 'src/auth/token.service';
+import { Staff } from '../staff/staff.entity';
 
 @Injectable()
 export class UsersService {
@@ -32,8 +31,10 @@ export class UsersService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
 
+    @InjectRepository(Staff)
+    private staffRepository: Repository<Staff>,
+
     private readonly jwtService: JwtService,
-    @InjectRedis() private readonly redis: Redis,
     private readonly configService: ConfigService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly emailService: EmailService,
@@ -61,25 +62,31 @@ export class UsersService {
       throw new NotFoundException(`Role with ID ${roleId} not found`);
     }
 
-    // Prepare base user data
-    let userData = {
+    // Handle image upload if provided
+    let uploadedImageUrl = null;
+    if (image) {
+      const uploadedImage = await this.cloudinaryService.uploadImage(image);
+      uploadedImageUrl = uploadedImage.secure_url;
+    }
+
+    // Create user
+    const user = this.userRepository.create({
       ...createUserDto,
       userName,
       password: hashedPassword,
       role: role,
       isFirstLogin: true,
-    };
-    // Handle image upload if provided
-    if (image) {
-      const uploadedImage = await this.cloudinaryService.uploadImage(image);
-      userData = {
-        ...userData,
-        image: uploadedImage.secure_url,
-      };
-    }
-
-    const user = this.userRepository.create(userData);
+      image: uploadedImageUrl,
+    });
     await this.userRepository.save(user);
+
+    // Create staff entry linked to the user
+    const staff = this.staffRepository.create({
+      user: user,
+      firstName: createUserDto.firstName,
+      contactNo: createUserDto.contactNo,
+    });
+    await this.staffRepository.save(staff);
 
     // Send email with credentials
     await this.emailService.sendStaffCredentials(

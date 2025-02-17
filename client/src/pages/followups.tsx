@@ -132,6 +132,7 @@ const FollowupsPage = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Student Name</TableHead>
+                    <TableHead>Follow-up Date</TableHead>
                     <TableHead>Follow-up Count</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Completed</TableHead>
@@ -144,6 +145,9 @@ const FollowupsPage = () => {
                     <TableRow key={followup.id}>
                       <TableCell className="font-medium">
                         {followup.studentName}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {followup.followupDate}
                       </TableCell>
                       <TableCell>{followup.followupCount}</TableCell>
                       <TableCell>

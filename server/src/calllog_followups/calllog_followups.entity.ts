@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { CallLog } from '../call-logs/call-log.entity';
 import { User } from '../users/user.entity';
+import { Staff } from 'src/staff/staff.entity';
 
 @Entity('call_log_followups')
 export class CallLogFollowup {
@@ -30,12 +31,12 @@ export class CallLogFollowup {
   @JoinColumn({ name: 'callLogId' })
   callLog: CallLog;
 
-  @ManyToOne(() => User, (user) => user.followups, {
+  @ManyToOne(() => Staff, (staff) => staff.followups, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'assignedStaffId' })
-  assignedStaff: User;
+  assignedStaff: Staff;
 
   @CreateDateColumn({
     type: 'timestamp',

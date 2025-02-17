@@ -14,6 +14,7 @@ import { UsersService } from 'src/users/users.service';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { TokenService } from './token.service';
 import { EnhancedRedisModule } from 'src/redis/redis.module';
+import { Staff } from 'src/staff/staff.entity';
 
 @Module({
   imports: [
@@ -38,7 +39,7 @@ import { EnhancedRedisModule } from 'src/redis/redis.module';
       },
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Role]),
+    TypeOrmModule.forFeature([User, Role, Staff]),
     ConfigModule,
     UsersModule,
     EnhancedRedisModule,

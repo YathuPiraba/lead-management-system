@@ -11,10 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { TokenService } from 'src/auth/token.service';
 import { RedisService } from 'src/redis/redis.service';
+import { Staff } from 'src/staff/staff.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role]),
+    TypeOrmModule.forFeature([User, Role, Staff]),
     CloudinaryModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

@@ -9,7 +9,6 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Role } from './role.entity';
-import { CallLogFollowup } from '../calllog_followups/calllog_followups.entity';
 
 @Entity('users')
 export class User {
@@ -21,9 +20,6 @@ export class User {
 
   @Column({ unique: true })
   email: string;
-
-  @Column()
-  firstName: string;
 
   @Column()
   password: string;
@@ -40,9 +36,6 @@ export class User {
   @Column({ nullable: true })
   password_reset_expires_at: Date;
 
-  @Column({ nullable: true })
-  contactNo: number;
-
   @CreateDateColumn()
   createdAt: Date;
 
@@ -54,9 +47,4 @@ export class User {
 
   @Column({ default: true })
   isFirstLogin: boolean;
-
-  @OneToMany(() => CallLogFollowup, (followup) => followup.callLog, {
-    cascade: true,
-  })
-  followups: CallLogFollowup[];
 }

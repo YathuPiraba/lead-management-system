@@ -20,17 +20,9 @@ export class AdminSeeder {
 
     const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
     const adminPassword = this.configService.get<string>('ADMIN_PASSWORD');
-    const adminFirstName = this.configService.get<string>('ADMIN_FIRST_NAME');
-    const adminContactNo = this.configService.get<string>('ADMIN_CONTACT_NO');
     const adminUserName = this.configService.get<string>('ADMIN_USERNAME');
 
-    if (
-      !adminEmail ||
-      !adminPassword ||
-      !adminFirstName ||
-      !adminContactNo ||
-      !adminUserName
-    ) {
+    if (!adminEmail || !adminPassword || !adminUserName) {
       throw new Error(
         'Admin credentials not properly configured in environment variables',
       );
@@ -57,8 +49,6 @@ export class AdminSeeder {
         email: adminEmail,
         password: hashedPassword,
         userName: adminUserName,
-        firstName: adminFirstName,
-        contactNo: adminContactNo,
         role: adminRole,
         isFirstLogin: false,
         isActive: true,
