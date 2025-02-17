@@ -42,7 +42,6 @@ export class CreateCallLogsAndFollowups1728284156409
     await queryRunner.query(`
       CREATE TABLE "call_log_followups" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-        "leadNo" character varying NOT NULL UNIQUE,
         "callLogId" uuid,
         "followup_date" TIMESTAMP NOT NULL,
         "assignedStaffId" integer,
