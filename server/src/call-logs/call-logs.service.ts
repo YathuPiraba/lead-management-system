@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository, Between } from 'typeorm';
 import { CallLog } from './call-log.entity';
-import { log } from 'util';
 
 @Injectable()
 export class CallLogsService {
@@ -153,6 +152,7 @@ export class CallLogsService {
         date: formatTo12Hour(log.call_date),
         status: log.status,
         notes: log.notes,
+        followupCount: log.followup_count,
         followups:
           log.followups.length > 0
             ? log.followups.map((followup) => ({
@@ -163,7 +163,7 @@ export class CallLogsService {
                 assignedStaff: followup.assignedStaff
                   ? {
                       id: followup.assignedStaff.id,
-                      name: followup.assignedStaff.userName,
+                      name: followup.assignedStaff.firstName,
                       email: followup.assignedStaff.email,
                     }
                   : null,

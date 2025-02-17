@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,25 +10,59 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Calendar, Plus } from "lucide-react";
+import { CallLogResponse, getCallLogsWithFollowups } from "@/lib/followups.api";
+import { PaginationInfo } from "@/lib/call-logs.api";
 
 const FollowupsPage = () => {
-  const followups = [
-    {
-      id: 1,
-      studentName: "Mike Johnson",
-      dueDate: "2024-03-29",
-      status: "Pending",
-      assignedTo: "Sarah Wilson",
-    },
-    {
-      id: 2,
-      studentName: "Emily Brown",
-      dueDate: "2024-03-30",
-      status: "Completed",
-      assignedTo: "John Smith",
-    },
-    // Add more sample data as needed
-  ];
+  const [filters, setFilters] = useState({
+    studentName: "",
+    phone: "",
+    status: "",
+    notes: "",
+    date: undefined as string | undefined,
+  });
+  const [openPopover, setOpenPopover] = useState<{ [key: string]: boolean }>({
+    studentName: false,
+    phone: false,
+    date: false,
+    status: false,
+    notes: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [followups, setFollowups] = useState<CallLogResponse[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+
+  const fetchFollowups = async (page: number = 1) => {
+    try {
+      const res = await getCallLogsWithFollowups({
+        page,
+        limit: pagination.itemsPerPage,
+        ...filters,
+      });
+      console.log(res, "res");
+
+      if (res) {
+        setPagination(res.pagination);
+        setFollowups(res.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFollowups(pagination.currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, pagination.currentPage]);
 
   return (
     <div className="p-6 space-y-6">
@@ -83,9 +117,9 @@ const FollowupsPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Student Name</TableHead>
-                <TableHead>Due Date</TableHead>
+                <TableHead>Follow-up Count</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Assigned To</TableHead>
+                <TableHead>Assigned Staff</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -95,7 +129,7 @@ const FollowupsPage = () => {
                   <TableCell className="font-medium">
                     {followup.studentName}
                   </TableCell>
-                  <TableCell>{followup.dueDate}</TableCell>
+                  <TableCell>{followup.followupCount}</TableCell>
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
@@ -107,7 +141,17 @@ const FollowupsPage = () => {
                       {followup.status}
                     </span>
                   </TableCell>
-                  <TableCell>{followup.assignedTo}</TableCell>
+                  <TableCell>
+                    {followup.followups && followup.followups.length > 0
+                      ? followup.followups.map((followupItem, index) => (
+                          <div key={index}>
+                            {followupItem.assignedStaff
+                              ? followupItem.assignedStaff.name
+                              : "N/A"}
+                          </div>
+                        ))
+                      : "N/A"}
+                  </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm">
                       <Calendar className="h-4 w-4" />

@@ -1,0 +1,54 @@
+import apiClient from "./axios";
+import { ApiResponse } from "./axios";
+import {
+  PaginationParams,
+  PaginationInfo,
+  PaginatedApiResponse,
+} from "./call-logs.api";
+
+export interface Followup {
+  id: string;
+  followupDate: string;
+  completed: boolean;
+  notes: string;
+  assignedStaff: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+}
+
+export interface CallLogResponse {
+  id: string;
+  studentName: string;
+  phone: string;
+  date: string;
+  status: string;
+  notes: string;
+  followupCount: number;
+  followups: Followup[] | null;
+}
+
+export const getCallLogsWithFollowups = async (
+  params?: PaginationParams & { search?: string }
+): Promise<PaginatedApiResponse<CallLogResponse> | undefined> => {
+  try {
+    const response = await apiClient.get<
+      ApiResponse<{ data: CallLogResponse[]; pagination: PaginationInfo }>
+    >("/call-logs/with-followups", {
+      params: {
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+        search: params?.search,
+      },
+    });
+
+    const { data, pagination } = response.data.data;
+
+    // You can map the data or process it here if needed
+    return { data, pagination };
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
