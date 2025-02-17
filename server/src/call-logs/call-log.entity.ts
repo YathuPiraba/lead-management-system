@@ -17,19 +17,19 @@ export class CallLog {
   id: string;
 
   @Column({ unique: true })
-  lead_no: string;
+  leadNo: string;
 
   @ManyToOne(() => Student, { nullable: true })
   student: Student;
 
   @Column({ nullable: true })
-  student_id: string;
+  studentId: string;
 
   @ManyToOne(() => User, { nullable: true })
   user: User;
 
   @Column({ nullable: true })
-  user_id: number;
+  userId: number;
 
   @Column({ type: 'timestamp' })
   call_date: Date;
@@ -54,7 +54,7 @@ export class CallLog {
   status: string;
 
   @Column({ default: false })
-  is_expired: boolean;
+  isExpired: boolean;
 
   @CreateDateColumn()
   created_at: Date;

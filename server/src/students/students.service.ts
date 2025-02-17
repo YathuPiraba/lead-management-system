@@ -15,7 +15,6 @@ export class StudentsService {
     private callLogRepository: Repository<CallLog>,
     @InjectRepository(CallLogFollowup)
     private followupRepository: Repository<CallLogFollowup>,
-    @InjectRepository(DataSource)
     private readonly dataSource: DataSource,
   ) {}
 
@@ -37,12 +36,12 @@ export class StudentsService {
 
       // Create the Call Log entry with snake_case property names to match entity
       const newCallLog = this.callLogRepository.create({
-        lead_no: leadNo,
-        student_id: savedStudent.id,
-        user_id: data.callLog.userId,
-        call_date: new Date(),
+        leadNo: leadNo,
+        studentId: savedStudent.id,
+        userId: data.callLog.userId,
+        call_date: data.callLog.call_date,
         repeat_followup: data.callLog.repeat_followup,
-        do_not_followup: data.callLog.doNotFollowup,
+        do_not_followup: data.callLog.do_not_followup,
         followup_count: 1,
         status: data.callLog.repeat_followup ? 'open' : 'closed',
         notes: data.callLog.repeat_followup ? null : data.callLog.notes,

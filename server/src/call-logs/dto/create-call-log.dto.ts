@@ -16,7 +16,7 @@ export class CreateCallLogDto {
 
   @IsDateString()
   @IsOptional()
-  callDate?: string;
+  call_date?: string;
 
   @IsDateString()
   @IsOptional()
@@ -32,7 +32,7 @@ export class CreateCallLogDto {
 
   @IsBoolean()
   @IsOptional()
-  doNotFollowup?: boolean;
+  do_not_followup?: boolean;
 
   @IsInt()
   @Min(0)
