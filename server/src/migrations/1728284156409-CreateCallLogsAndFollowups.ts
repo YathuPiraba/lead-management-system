@@ -57,7 +57,7 @@ export class CreateCallLogsAndFollowups1728284156409
 
     // Auto-incrementing leadNo pattern (Lead #0001, Lead #0002, etc.)
     await queryRunner.query(`
-      CREATE SEQUENCE lead_no_seq START 1;
+    CREATE SEQUENCE lead_no_seq START 1 RESTART WITH 1;
       CREATE OR REPLACE FUNCTION generate_lead_no() RETURNS TRIGGER AS $$
       BEGIN
         NEW.leadNo := 'Lead #' || LPAD(nextval('lead_no_seq')::TEXT, 4, '0');
