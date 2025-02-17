@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository, Between } from 'typeorm';
 import { CallLog } from './call-log.entity';
+import { CallLogFollowup } from 'src/calllog_followups/calllog_followups.entity';
 
 @Injectable()
 export class CallLogsService {
   constructor(
     @InjectRepository(CallLog)
     private callLogRepository: Repository<CallLog>,
+
+    @InjectRepository(CallLogFollowup)
+    private followupRepository: Repository<CallLogFollowup>,
   ) {}
 
   async getCallLogs(
@@ -17,23 +21,20 @@ export class CallLogsService {
     phone?: string,
     date?: string,
     status?: string,
-    notes?: string,
     sort: 'ASC' | 'DESC' = 'DESC',
   ): Promise<any> {
     const whereConditions: any[] = [];
-    if (studentName && studentName.trim()) {
+
+    if (studentName?.trim()) {
       whereConditions.push({ student: { name: ILike(`%${studentName}%`) } });
     }
-    if (phone && phone.trim()) {
+    if (phone?.trim()) {
       whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
     }
-    if (status && status.trim()) {
+    if (status?.trim()) {
       whereConditions.push({ status: ILike(`%${status}%`) });
     }
-    if (notes && notes.trim()) {
-      whereConditions.push({ notes: ILike(`%${notes}%`) });
-    }
-    if (date && date.trim()) {
+    if (date?.trim()) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
@@ -42,9 +43,10 @@ export class CallLogsService {
         call_date: Between(startOfDay, endOfDay),
       });
     }
+
     // Fetch data with filters
     const [data, total] = await this.callLogRepository.findAndCount({
-      relations: ['student', 'user'],
+      relations: ['student', 'user', 'followups'],
       where: whereConditions.length > 0 ? whereConditions : undefined,
       order: {
         call_date: sort,
@@ -53,13 +55,26 @@ export class CallLogsService {
       take: limit,
     });
 
+    // Function to get the latest follow-up note
+    const getLatestFollowupNote = (log: any): string | null => {
+      if (log.followups?.length) {
+        const latestFollowup = [...log.followups].sort(
+          (a, b) =>
+            new Date(b.followup_date).getTime() -
+            new Date(a.followup_date).getTime(),
+        )[0];
+        return latestFollowup.notes || null;
+      }
+      return null;
+    };
+
     const formattedCallLogs = data.map((log) => ({
       id: log.id,
       studentName: log.student.name,
       phone: log.student.phone_number,
       date: formatTo12Hour(log.call_date),
       status: log.status,
-      notes: log.notes,
+      notes: getLatestFollowupNote(log) || log.notes,
     }));
 
     return {
@@ -75,139 +90,125 @@ export class CallLogsService {
     };
   }
 
-  // async getCallLogsWithFollowups(
-  //   page = 1,
-  //   limit = 10,
-  //   studentName?: string,
-  //   phone?: string,
-  //   date?: string,
-  //   status?: string,
-  //   notes?: string,
-  //   sort: 'ASC' | 'DESC' = 'DESC',
-  // ): Promise<any> {
-  //   const whereConditions: any[] = [];
+  async getCallLogsWithFollowups(
+    page = 1,
+    limit = 10,
+    studentName?: string,
+    phone?: string,
+    date?: string,
+    status?: string,
+    sort: 'ASC' | 'DESC' = 'DESC',
+  ): Promise<any> {
+    const whereConditions: any[] = [];
 
-  //   if (studentName && studentName.trim()) {
-  //     whereConditions.push({ student: { name: ILike(`%${studentName}%`) } });
-  //   }
-  //   if (phone && phone.trim()) {
-  //     whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
-  //   }
-  //   if (status && status.trim()) {
-  //     whereConditions.push({ status: ILike(`%${status}%`) });
-  //   }
-  //   if (notes && notes.trim()) {
-  //     whereConditions.push({ notes: ILike(`%${notes}%`) });
-  //   }
-  //   if (date && date.trim()) {
-  //     const startOfDay = new Date(date);
-  //     startOfDay.setHours(0, 0, 0, 0);
-  //     const endOfDay = new Date(date);
-  //     endOfDay.setHours(23, 59, 59, 999);
-  //     whereConditions.push({ call_date: Between(startOfDay, endOfDay) });
-  //   }
+    if (studentName && studentName.trim()) {
+      whereConditions.push({ student: { name: ILike(`%${studentName}%`) } });
+    }
+    if (phone && phone.trim()) {
+      whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
+    }
+    if (status && status.trim()) {
+      whereConditions.push({ status: ILike(`%${status}%`) });
+    }
+    if (date && date.trim()) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      whereConditions.push({ call_date: Between(startOfDay, endOfDay) });
+    }
 
-  //   const todayStart = new Date();
-  //   todayStart.setHours(0, 0, 0, 0);
-  //   const todayEnd = new Date();
-  //   todayEnd.setHours(23, 59, 59, 999);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
 
-  //   const [data, total] = await this.callLogRepository.findAndCount({
-  //     relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
-  //     where: whereConditions.length > 0 ? whereConditions : undefined,
-  //     order: { created_at: 'DESC' },
-  //   });
+    const [data, total] = await this.callLogRepository.findAndCount({
+      relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
+      where: whereConditions.length > 0 ? whereConditions : undefined,
+      order: { created_at: 'DESC' },
+    });
 
-  //   const repeatFollowupLogs = data.filter((log) => log.repeat_followup);
+    const repeatFollowupLogs = data.filter((log) => log.repeat_followup);
 
-  //   // Extract today's repeat follow-ups
-  //   const repeatFollowupsToday = repeatFollowupLogs.filter((log) =>
-  //     log.followups.some(
-  //       (followup) =>
-  //         new Date(followup.followup_date) >= todayStart &&
-  //         new Date(followup.followup_date) <= todayEnd,
-  //     ),
-  //   );
+    // Extract today's repeat follow-ups
+    const repeatFollowupsToday = repeatFollowupLogs.filter((log) =>
+      log.followups.some(
+        (followup) =>
+          new Date(followup.followup_date) >= todayStart &&
+          new Date(followup.followup_date) <= todayEnd,
+      ),
+    );
 
-  //   // Get the most recent followup date for each log
-  //   const getLatestFollowupDate = (log: any): Date => {
-  //     if (log.followups && log.followups.length > 0) {
-  //       // Sort followups by date and get the most recent
-  //       const sortedFollowups = [...log.followups].sort(
-  //         (a, b) =>
-  //           new Date(b.followup_date).getTime() -
-  //           new Date(a.followup_date).getTime(),
-  //       );
-  //       return new Date(sortedFollowups[0].followup_date);
-  //     }
-  //     // If no followups exist, use the next_followup_date
-  //     return new Date(log.next_followup_date);
-  //   };
+    // Get the most recent followup date for each log
+    const getLatestFollowupDate = (log: any): Date | null => {
+      if (log.followups && log.followups.length > 0) {
+        return new Date(
+          Math.max(
+            ...log.followups.map((f) => new Date(f.followup_date).getTime()),
+          ),
+        );
+      }
+      return null; // No followups available
+    };
 
-  //   const remainingData = repeatFollowupLogs
-  //     .filter((log) => !repeatFollowupsToday.includes(log))
-  //     .sort((a, b) => {
-  //       const dateA = getLatestFollowupDate(a);
-  //       const dateB = getLatestFollowupDate(b);
-  //       return dateB.getTime() - dateA.getTime(); // For DESC order
-  //     });
+    const remainingData = repeatFollowupLogs
+      .filter((log) => !repeatFollowupsToday.includes(log))
+      .sort((a, b) => {
+        const dateA = getLatestFollowupDate(a)?.getTime() || 0;
+        const dateB = getLatestFollowupDate(b)?.getTime() || 0;
+        return dateB - dateA; // Sort by latest followup date (DESC)
+      });
 
-  //   // Paginate results
-  //   const startIndex = (page - 1) * limit;
-  //   const endIndex = startIndex + limit;
+    // Paginate results
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
 
-  //   const formattedCallLogs = [...repeatFollowupsToday, ...remainingData]
-  //     .slice(startIndex, endIndex)
-  //     .map((log) => {
-  //       const latestFollowupDate =
-  //         log.followups && log.followups.length > 0
-  //           ? Math.max(
-  //               ...log.followups.map((f) =>
-  //                 new Date(f.followup_date).getTime(),
-  //               ),
-  //             )
-  //           : new Date(log.next_followup_date).getTime();
+    const formattedCallLogs = [...repeatFollowupsToday, ...remainingData]
+      .slice(startIndex, endIndex)
+      .map((log) => {
+        const latestFollowupDate = getLatestFollowupDate(log);
+        return {
+          id: log.id,
+          studentName: log.student?.name || 'N/A',
+          phone: log.student?.phone_number || 'N/A',
+          date: formatTo12Hour(log.call_date),
+          status: log.status,
+          notes: log.notes,
+          followupCount: log.followup_count,
+          followupDate: latestFollowupDate
+            ? formatTo12Hour(latestFollowupDate)
+            : 'N/A',
+          followups:
+            log.followups.length > 0
+              ? log.followups.map((followup) => ({
+                  id: followup.id,
+                  followupDate: followup.followup_date,
+                  completed: followup.completed,
+                  notes: followup.notes,
+                  assignedStaff: followup.assignedStaff
+                    ? {
+                        id: followup.assignedStaff.id,
+                        name: followup.assignedStaff.firstName,
+                      }
+                    : null,
+                }))
+              : null,
+        };
+      });
 
-  //       return {
-  //         id: log.id,
-  //         studentName: log.student?.name || 'N/A',
-  //         phone: log.student?.phone_number || 'N/A',
-  //         date: formatTo12Hour(log.call_date),
-  //         status: log.status,
-  //         notes: log.notes,
-  //         followupCount: log.followup_count,
-  //         followupDate: formatTo12Hour(new Date(latestFollowupDate)),
-  //         followups:
-  //           log.followups.length > 0
-  //             ? log.followups.map((followup) => ({
-  //                 id: followup.id,
-  //                 followupDate: followup.followup_date,
-  //                 completed: followup.completed,
-  //                 notes: followup.notes,
-  //                 assignedStaff: followup.assignedStaff
-  //                   ? {
-  //                       id: followup.assignedStaff.id,
-  //                       name: followup.assignedStaff.firstName,
-  //                       email: followup.assignedStaff.email,
-  //                     }
-  //                   : null,
-  //               }))
-  //             : null,
-  //       };
-  //     });
-
-  //   return {
-  //     data: formattedCallLogs,
-  //     pagination: {
-  //       currentPage: page,
-  //       totalPages: Math.ceil(total / limit),
-  //       hasNextPage: endIndex < total,
-  //       hasPreviousPage: startIndex > 0,
-  //       totalItems: total,
-  //       itemsPerPage: limit,
-  //     },
-  //   };
-  // }
+    return {
+      data: formattedCallLogs,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: endIndex < total,
+        hasPreviousPage: startIndex > 0,
+        totalItems: total,
+        itemsPerPage: limit,
+      },
+    };
+  }
 }
 
 // Helper function to format date to 12-hour format with AM/PM
