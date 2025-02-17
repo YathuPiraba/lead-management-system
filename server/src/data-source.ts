@@ -6,6 +6,7 @@ import { Role } from './users/role.entity';
 import { Student } from './students/student.entity';
 import { CallLog } from './call-logs/call-log.entity';
 import { Notification } from './notification/notification.entity';
+import { Staff } from './staff/staff.entity';
 import { CallLogFollowup } from './calllog_followups/calllog_followups.entity';
 // Load the appropriate .env file based on NODE_ENV
 const envFile =
@@ -21,7 +22,15 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-  entities: [User, Role, Student, CallLog, Notification, CallLogFollowup],
+  entities: [
+    User,
+    Role,
+    Student,
+    CallLog,
+    Notification,
+    CallLogFollowup,
+    Staff,
+  ],
   migrations:
     process.env.NODE_ENV === 'production'
       ? ['dist/migrations/*.js']

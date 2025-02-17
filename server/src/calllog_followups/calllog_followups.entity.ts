@@ -16,7 +16,7 @@ export class CallLogFollowup {
   id: string;
 
   @Column({ type: 'date', nullable: false })
-  followupDate: Date;
+  followup_date: Date;
 
   @Column({ type: 'boolean', default: false })
   completed: boolean;
@@ -37,13 +37,18 @@ export class CallLogFollowup {
   @JoinColumn({ name: 'assignedStaffId' })
   assignedStaff: User;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    name: 'created_at', // Add this
+  })
   createdAt: Date;
 
   @UpdateDateColumn({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
+    name: 'updated_at', // Add this
   })
   updatedAt: Date;
 }
