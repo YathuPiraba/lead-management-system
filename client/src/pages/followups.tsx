@@ -119,6 +119,7 @@ const FollowupsPage = () => {
                 <TableHead>Student Name</TableHead>
                 <TableHead>Follow-up Count</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Completed</TableHead>
                 <TableHead>Assigned Staff</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -133,13 +134,28 @@ const FollowupsPage = () => {
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
-                        followup.status === "Completed"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
+                        followup.status === "open"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-green-100 text-green-800"
                       }`}
                     >
-                      {followup.status}
+                      {followup.status === "open" ? "Open" : "Closed"}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    {followup.followups && followup.followups.length > 0 ? (
+                      followup.followups.map((followupItem, index) => (
+                        <div key={index}>
+                          {followupItem.completed ? (
+                            <span className="text-green-500">Completed</span>
+                          ) : (
+                            <span className="text-yellow-500">Ongoing</span>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-red-500">Pending</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     {followup.followups && followup.followups.length > 0

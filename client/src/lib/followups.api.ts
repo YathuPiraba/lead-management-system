@@ -26,11 +26,18 @@ export interface CallLogResponse {
   status: string;
   notes: string;
   followupCount: number;
+  followupDate: string;
   followups: Followup[] | null;
 }
 
 export const getCallLogsWithFollowups = async (
-  params?: PaginationParams & { search?: string }
+  params?: PaginationParams & {
+    studentName?: string;
+    phone?: string;
+    date?: string;
+    status?: string;
+    notes?: string;
+  }
 ): Promise<PaginatedApiResponse<CallLogResponse> | undefined> => {
   try {
     const response = await apiClient.get<
@@ -39,7 +46,11 @@ export const getCallLogsWithFollowups = async (
       params: {
         page: params?.page || 1,
         limit: params?.limit || 10,
-        search: params?.search,
+        studentName: params?.studentName,
+        phone: params?.phone,
+        date: params?.date,
+        status: params?.status,
+        notes: params?.notes,
       },
     });
 

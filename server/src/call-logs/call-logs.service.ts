@@ -112,14 +112,12 @@ export class CallLogsService {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    // Fetch all call logs with follow-ups
     const [data, total] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
       where: whereConditions.length > 0 ? whereConditions : undefined,
-      order: { created_at: 'DESC' }, // Default sorting by createdAt DESC
+      order: { created_at: 'DESC' },
     });
 
-    // Ensure only logs with repeat_followup = true are considered
     const repeatFollowupLogs = data.filter((log) => log.repeat_followup);
 
     // Extract today's repeat follow-ups
@@ -131,13 +129,28 @@ export class CallLogsService {
       ),
     );
 
-    // Filter remaining repeat follow-up logs (excluding today's ones)
+    // Get the most recent followup date for each log
+    const getLatestFollowupDate = (log: any): Date => {
+      if (log.followups && log.followups.length > 0) {
+        // Sort followups by date and get the most recent
+        const sortedFollowups = [...log.followups].sort(
+          (a, b) =>
+            new Date(b.followup_date).getTime() -
+            new Date(a.followup_date).getTime(),
+        );
+        return new Date(sortedFollowups[0].followup_date);
+      }
+      // If no followups exist, use the next_followup_date
+      return new Date(log.next_followup_date);
+    };
+
     const remainingData = repeatFollowupLogs
       .filter((log) => !repeatFollowupsToday.includes(log))
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      ); // Ensure descending order
+      .sort((a, b) => {
+        const dateA = getLatestFollowupDate(a);
+        const dateB = getLatestFollowupDate(b);
+        return dateB.getTime() - dateA.getTime(); // For DESC order
+      });
 
     // Paginate results
     const startIndex = (page - 1) * limit;
@@ -145,31 +158,43 @@ export class CallLogsService {
 
     const formattedCallLogs = [...repeatFollowupsToday, ...remainingData]
       .slice(startIndex, endIndex)
-      .map((log) => ({
-        id: log.id,
-        studentName: log.student?.name || 'N/A',
-        phone: log.student?.phone_number || 'N/A',
-        date: formatTo12Hour(log.call_date),
-        status: log.status,
-        notes: log.notes,
-        followupCount: log.followup_count,
-        followups:
-          log.followups.length > 0
-            ? log.followups.map((followup) => ({
-                id: followup.id,
-                followupDate: followup.followup_date,
-                completed: followup.completed,
-                notes: followup.notes,
-                assignedStaff: followup.assignedStaff
-                  ? {
-                      id: followup.assignedStaff.id,
-                      name: followup.assignedStaff.firstName,
-                      email: followup.assignedStaff.email,
-                    }
-                  : null,
-              }))
-            : null,
-      }));
+      .map((log) => {
+        const latestFollowupDate =
+          log.followups && log.followups.length > 0
+            ? Math.max(
+                ...log.followups.map((f) =>
+                  new Date(f.followup_date).getTime(),
+                ),
+              )
+            : new Date(log.next_followup_date).getTime();
+
+        return {
+          id: log.id,
+          studentName: log.student?.name || 'N/A',
+          phone: log.student?.phone_number || 'N/A',
+          date: formatTo12Hour(log.call_date),
+          status: log.status,
+          notes: log.notes,
+          followupCount: log.followup_count,
+          followupDate: new Date(latestFollowupDate),
+          followups:
+            log.followups.length > 0
+              ? log.followups.map((followup) => ({
+                  id: followup.id,
+                  followupDate: followup.followup_date,
+                  completed: followup.completed,
+                  notes: followup.notes,
+                  assignedStaff: followup.assignedStaff
+                    ? {
+                        id: followup.assignedStaff.id,
+                        name: followup.assignedStaff.firstName,
+                        email: followup.assignedStaff.email,
+                      }
+                    : null,
+                }))
+              : null,
+        };
+      });
 
     return {
       data: formattedCallLogs,
