@@ -8,7 +8,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { CallLog } from '../call-logs/call-log.entity';
-import { User } from '../users/user.entity';
 import { Staff } from 'src/staff/staff.entity';
 
 @Entity('call_log_followups')

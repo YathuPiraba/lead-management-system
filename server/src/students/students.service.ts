@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Student } from './student.entity';
 import { CallLog } from '../call-logs/call-log.entity';
 import { AddStudentCallLogDto } from './dto/add-student-call-log.dto';
@@ -15,42 +15,68 @@ export class StudentsService {
     private callLogRepository: Repository<CallLog>,
     @InjectRepository(CallLogFollowup)
     private followupRepository: Repository<CallLogFollowup>,
+    @InjectRepository(DataSource)
+    private readonly dataSource: DataSource,
   ) {}
 
-  async addStudentAndCallLog(data: AddStudentCallLogDto): Promise<any> {
-    const { student, callLog } = data;
+  async addStudentAndCallLog(data: AddStudentCallLogDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    // Create and save the student
-    const newStudent = this.studentRepository.create(student);
-    const savedStudent = await this.studentRepository.save(newStudent);
+    try {
+      // Create and save the student
+      const newStudent = this.studentRepository.create(data.student);
+      const savedStudent = await queryRunner.manager.save(Student, newStudent);
 
-    // Create the Call Log entry
-    const newCallLog = this.callLogRepository.create({
-      ...callLog,
-      student: savedStudent,
-      followup_count: 1,
-      user: { id: callLog.userId },
-      status: callLog.repeat_followup ? 'open' : 'closed',
-      notes: callLog.repeat_followup ? null : callLog.notes,
-    });
+      // Get the next lead number
+      const result = await queryRunner.query(
+        `SELECT 'Lead #' || LPAD(nextval('lead_no_seq')::TEXT, 4, '0') as lead_no`,
+      );
+      const leadNo = result[0].lead_no;
 
-    const savedCallLog = await this.callLogRepository.save(newCallLog);
-
-    let savedFollowup = null;
-    if (callLog.repeat_followup) {
-      const newFollowup = this.followupRepository.create({
-        callLog: savedCallLog,
-        notes: callLog.notes,
-        followup_date: callLog.next_followup_date,
+      // Create the Call Log entry with snake_case property names to match entity
+      const newCallLog = this.callLogRepository.create({
+        lead_no: leadNo,
+        student_id: savedStudent.id,
+        user_id: data.callLog.userId,
+        call_date: new Date(),
+        repeat_followup: data.callLog.repeat_followup,
+        do_not_followup: data.callLog.doNotFollowup,
+        followup_count: 1,
+        status: data.callLog.repeat_followup ? 'open' : 'closed',
+        notes: data.callLog.repeat_followup ? null : data.callLog.notes,
       });
 
-      savedFollowup = await this.followupRepository.save(newFollowup);
-    }
+      const savedCallLog = await queryRunner.manager.save(CallLog, newCallLog);
 
-    return {
-      student: savedStudent,
-      callLog: savedCallLog,
-      followup: savedFollowup,
-    };
+      let savedFollowup = null;
+      if (data.callLog.repeat_followup && data.callLog.next_followup_date) {
+        const newFollowup = this.followupRepository.create({
+          callLog: savedCallLog, // Use the relation instead of ID
+          followup_date: new Date(data.callLog.next_followup_date),
+          notes: data.callLog.notes,
+          completed: false,
+        });
+
+        savedFollowup = await queryRunner.manager.save(
+          CallLogFollowup,
+          newFollowup,
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      return {
+        student: savedStudent,
+        callLog: savedCallLog,
+        followup: savedFollowup,
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }

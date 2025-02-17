@@ -11,37 +11,50 @@ import {
 import { Student } from '../students/student.entity';
 import { User } from '../users/user.entity';
 import { CallLogFollowup } from '../calllog_followups/calllog_followups.entity';
-
 @Entity('call_logs')
 export class CallLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Student, (student) => student.id)
-  @JoinColumn({ name: 'studentId' })
+  @Column({ unique: true })
+  lead_no: string;
+
+  @ManyToOne(() => Student, { nullable: true })
   student: Student;
 
-  @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'userId' })
+  @Column({ nullable: true })
+  student_id: string;
+
+  @ManyToOne(() => User, { nullable: true })
   user: User;
+
+  @Column({ nullable: true })
+  user_id: number;
 
   @Column({ type: 'timestamp' })
   call_date: Date;
 
+  @Column({ default: false })
+  repeat_followup: boolean;
+
+  @Column({ default: false })
+  do_not_followup: boolean;
+
   @Column({ type: 'text', nullable: true })
   notes: string;
 
-  @Column({ type: 'boolean', default: false })
-  repeat_followup: boolean;
-
-  @Column({ type: 'boolean', default: false })
-  do_not_followup: boolean;
-
-  @Column({ type: 'integer', default: 0 })
+  @Column({ default: 0 })
   followup_count: number;
 
-  @Column({ type: 'varchar', length: 255, default: 'open' })
+  @Column({
+    type: 'enum',
+    enum: ['open', 'closed'],
+    default: 'open',
+  })
   status: string;
+
+  @Column({ default: false })
+  is_expired: boolean;
 
   @CreateDateColumn()
   created_at: Date;
@@ -49,8 +62,6 @@ export class CallLog {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => CallLogFollowup, (followup) => followup.callLog, {
-    cascade: true,
-  })
+  @OneToMany(() => CallLogFollowup, (followup) => followup.callLog)
   followups: CallLogFollowup[];
 }
