@@ -10,16 +10,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Calendar, Loader, Plus } from "lucide-react";
-import { CallLogResponse, getCallLogsWithFollowups } from "@/lib/followups.api";
+import {
+  CallLogResponse,
+  getCallLogsWithFollowups,
+  getFollowupStats,
+} from "@/lib/followups.api";
 import { PaginationInfo } from "@/lib/call-logs.api";
 import Pagination from "@/components/Pagination";
+
+interface FollowupStats {
+  dueToday: number;
+  completedToday: number;
+  upcoming: number;
+}
 
 const FollowupsPage = () => {
   const [filters, setFilters] = useState({
     studentName: "",
     phone: "",
     status: "",
-    notes: "",
     date: undefined as string | undefined,
   });
   const [openPopover, setOpenPopover] = useState<{ [key: string]: boolean }>({
@@ -27,7 +36,6 @@ const FollowupsPage = () => {
     phone: false,
     date: false,
     status: false,
-    notes: false,
   });
   const [loading, setLoading] = useState(true);
   const [followups, setFollowups] = useState<CallLogResponse[]>([]);
@@ -40,6 +48,27 @@ const FollowupsPage = () => {
     itemsPerPage: 10,
   });
 
+  const [followupStats, setFollowupStats] = useState<FollowupStats>({
+    dueToday: 0,
+    completedToday: 0,
+    upcoming: 0,
+  });
+
+  const fetchFollowupStats = async () => {
+    try {
+      const res = await getFollowupStats();
+      if (res?.data) {
+        setFollowupStats(res.data as FollowupStats);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFollowupStats();
+  }, []);
+
   const fetchFollowups = async (page: number = 1) => {
     try {
       const res = await getCallLogsWithFollowups({
@@ -47,8 +76,6 @@ const FollowupsPage = () => {
         limit: pagination.itemsPerPage,
         ...filters,
       });
-      console.log(res, "res");
-
       if (res) {
         setPagination(res.pagination);
         setFollowups(res.data);
@@ -94,7 +121,7 @@ const FollowupsPage = () => {
             <CardTitle className="text-orange-600">Due Today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">{followupStats.dueToday}</div>
             <p className="text-sm text-gray-500">Follow-ups remaining</p>
           </CardContent>
         </Card>
@@ -104,7 +131,9 @@ const FollowupsPage = () => {
             <CardTitle className="text-green-600">Completed Today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">
+              {followupStats.completedToday}
+            </div>
             <p className="text-sm text-gray-500">Tasks finished</p>
           </CardContent>
         </Card>
@@ -114,7 +143,7 @@ const FollowupsPage = () => {
             <CardTitle className="text-blue-600">Upcoming</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            <div className="text-2xl font-bold">{followupStats.upcoming}</div>
             <p className="text-sm text-gray-500">Tasks for next week</p>
           </CardContent>
         </Card>
@@ -131,6 +160,7 @@ const FollowupsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Lead No</TableHead>
                     <TableHead>Student Name</TableHead>
                     <TableHead>Follow-up Date</TableHead>
                     <TableHead>Follow-up Count</TableHead>
@@ -143,6 +173,9 @@ const FollowupsPage = () => {
                 <TableBody>
                   {followups.map((followup) => (
                     <TableRow key={followup.id}>
+                      <TableCell className="font-medium">
+                        {followup.leadNo}
+                      </TableCell>
                       <TableCell className="font-medium">
                         {followup.studentName}
                       </TableCell>

@@ -11,7 +11,7 @@ export class CallLogsService {
     private callLogRepository: Repository<CallLog>,
 
     @InjectRepository(CallLogFollowup)
-    private followupRepository: Repository<CallLogFollowup>,
+    private followUpRepository: Repository<CallLogFollowup>,
   ) {}
 
   async getCallLogs(
@@ -123,7 +123,7 @@ export class CallLogsService {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const [data, total] = await this.callLogRepository.findAndCount({
+    const [data, _] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
       where: whereConditions.length > 0 ? whereConditions : undefined,
       order: { created_at: 'DESC' },
@@ -149,7 +149,7 @@ export class CallLogsService {
           ),
         );
       }
-      return null; // No followups available
+      return null;
     };
 
     const remainingData = repeatFollowupLogs
@@ -157,14 +157,18 @@ export class CallLogsService {
       .sort((a, b) => {
         const dateA = getLatestFollowupDate(a)?.getTime() || 0;
         const dateB = getLatestFollowupDate(b)?.getTime() || 0;
-        return dateB - dateA; // Sort by latest followup date (DESC)
+        return dateB - dateA;
       });
+
+    // Combine and get total filtered count
+    const filteredData = [...repeatFollowupsToday, ...remainingData];
+    const total = filteredData.length;
 
     // Paginate results
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
 
-    const formattedCallLogs = [...repeatFollowupsToday, ...remainingData]
+    const formattedCallLogs = filteredData
       .slice(startIndex, endIndex)
       .map((log) => {
         const latestFollowupDate = getLatestFollowupDate(log);
@@ -175,6 +179,7 @@ export class CallLogsService {
           date: formatTo12Hour(log.call_date),
           status: log.status,
           notes: log.notes,
+          leadNo: log.leadNo,
           followupCount: log.followup_count,
           followupDate: latestFollowupDate
             ? formatTo12Hour(latestFollowupDate)
@@ -207,6 +212,94 @@ export class CallLogsService {
         totalItems: total,
         itemsPerPage: limit,
       },
+    };
+  }
+
+  async getDashboardStats() {
+    // Get the current date in UTC
+    const now = new Date();
+
+    // Set to start of today in UTC (00:00:00)
+    const today = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+      ),
+    );
+
+    // Set to end of today in UTC (23:59:59.999)
+    const endOfDay = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+
+    // Set start of next week in UTC
+    const nextWeekStart = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0,
+        0,
+        0,
+      ),
+    );
+
+    // Set end of next week in UTC
+    const nextWeekEnd = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 7,
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+
+    // Get follow-ups due today that aren't completed
+    const dueToday = await this.followUpRepository.count({
+      where: {
+        followup_date: Between(today, endOfDay),
+        completed: false,
+      },
+    });
+
+    // Get follow-ups completed today
+    const completedToday = await this.followUpRepository.count({
+      where: {
+        followup_date: Between(today, endOfDay),
+        completed: true,
+        updatedAt: Between(today, endOfDay),
+      },
+    });
+
+    // Get upcoming follow-ups for next week
+    const upcoming = await this.followUpRepository.count({
+      where: {
+        followup_date: Between(nextWeekStart, nextWeekEnd),
+        completed: false,
+      },
+    });
+
+    console.log(dueToday, completedToday, upcoming);
+
+    return {
+      dueToday: dueToday || 0,
+      completedToday: completedToday || 0,
+      upcoming: upcoming || 0,
     };
   }
 }

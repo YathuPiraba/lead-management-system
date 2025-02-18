@@ -25,6 +25,7 @@ export interface CallLogResponse {
   date: string;
   status: string;
   notes: string;
+  leadNo: string;
   followupCount: number;
   followupDate: string;
   followups: Followup[] | null;
@@ -61,5 +62,14 @@ export const getCallLogsWithFollowups = async (
   } catch (error) {
     console.error(error);
     return undefined;
+  }
+};
+
+export const getFollowupStats = async () => {
+  try {
+    const response = await apiClient.get<ApiResponse>(`/call-logs/stats`);
+    return response.data;
+  } catch (err) {
+    console.error(err);
   }
 };

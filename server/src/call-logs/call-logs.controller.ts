@@ -58,4 +58,15 @@ export class CallLogsController {
       code: 'SUCCESS',
     };
   }
+
+  @Get('stats')
+  async getDashboardStats() {
+    const followupStats = await this.callLogsService.getDashboardStats();
+    return {
+      data: followupStats,
+      message: 'Followup Stats fetched successfully',
+      status: 200,
+      code: 'SUCCESS',
+    };
+  }
 }

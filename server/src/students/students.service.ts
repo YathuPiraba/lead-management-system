@@ -53,7 +53,7 @@ export class StudentsService {
       if (data.callLog.repeat_followup && data.callLog.next_followup_date) {
         const newFollowup = this.followupRepository.create({
           callLog: savedCallLog, // Use the relation instead of ID
-          followup_date: new Date(data.callLog.next_followup_date),
+          followup_date: data.callLog.next_followup_date,
           notes: data.callLog.notes,
           completed: false,
         });
