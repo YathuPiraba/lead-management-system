@@ -294,8 +294,6 @@ export class CallLogsService {
       },
     });
 
-    console.log(dueToday, completedToday, upcoming);
-
     return {
       dueToday: dueToday || 0,
       completedToday: completedToday || 0,

@@ -15,7 +15,7 @@ export class CallLogFollowup {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'date', nullable: false })
+  @Column({ type: 'timestamp', nullable: false })
   followup_date: Date;
 
   @Column({ type: 'boolean', default: false })
