@@ -159,12 +159,17 @@ export class CallLogsService {
       whereConditions.push({ leadNo: ILike(`%${leadNo}%`) });
     }
 
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
     if (date && date.trim()) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-      whereConditions.push({ call_date: Between(startOfDay, endOfDay) });
+      whereConditions.push({
+        followups: {
+          followup_date: Between(startOfDay, endOfDay),
+        },
+      });
     }
 
     const todayStart = new Date();
@@ -370,20 +375,26 @@ export class CallLogsService {
     leadNo?: string,
     sort: 'ASC' | 'DESC' = 'DESC',
   ): Promise<any> {
-    const whereConditions: any[] = [];
+    const whereConditions: any = { isExpired: true };
 
+    // Add nested conditions for student name
     if (studentName && studentName.trim()) {
-      whereConditions.push({ student: { name: ILike(`%${studentName}%`) } });
+      whereConditions.student = { name: ILike(`%${studentName}%`) };
     }
+
     if (phone && phone.trim()) {
-      whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
+      whereConditions.student = {
+        ...whereConditions.student,
+        phone_number: ILike(`%${phone}%`),
+      };
     }
+
     if (status && status.trim()) {
-      whereConditions.push({ status });
+      whereConditions.status = status;
     }
 
     if (leadNo && leadNo.trim()) {
-      whereConditions.push({ leadNo: ILike(`%${leadNo}%`) });
+      whereConditions.leadNo = ILike(`%${leadNo}%`);
     }
 
     if (date && date.trim()) {
@@ -391,34 +402,27 @@ export class CallLogsService {
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
-      whereConditions.push({ call_date: Between(startOfDay, endOfDay) });
-    }
 
-    // Get logs where isExpired is true
-    const baseCondition = { isExpired: true };
-    const finalConditions =
-      whereConditions.length > 0
-        ? [baseCondition, ...whereConditions]
-        : baseCondition;
+      whereConditions.followups = {
+        followup_date: Between(startOfDay, endOfDay),
+      };
+    }
 
     const [data, total] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
-      where: finalConditions,
+      where: whereConditions,
       order: { created_at: sort },
       skip: (page - 1) * limit,
       take: limit,
     });
 
-    // Sort logs by the date of the latest followup
     const sortedData = data.sort((a, b) => {
       const dateA = this.getLatestFollowupDate(a.followups)?.getTime() || 0;
       const dateB = this.getLatestFollowupDate(b.followups)?.getTime() || 0;
       return sort === 'DESC' ? dateB - dateA : dateA - dateB;
     });
 
-    // Format the data for response
     const formattedExpiredLogs = sortedData.map((log) => {
-      // Find the latest followup
       const latestFollowup = this.getLatestFollowup(log.followups);
 
       // Calculate days overdue
