@@ -468,17 +468,9 @@ export class CallLogsService {
 
     const logsToUpdate = logs.filter((log) => {
       if (log.followups && log.followups.length > 0) {
-        const latestFollowupDate = new Date(
-          Math.max(
-            ...log.followups.map((f) => new Date(f.followup_date).getTime()),
-          ),
-        );
+        const latestFollowupDate = this.getLatestFollowupDate(log.followups);
 
-        const latestFollowup = log.followups.find(
-          (f) =>
-            new Date(f.followup_date).getTime() ===
-            latestFollowupDate.getTime(),
-        );
+        const latestFollowup = this.getLatestFollowup(log.followups);
 
         return (
           latestFollowup &&

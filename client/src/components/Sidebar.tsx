@@ -74,7 +74,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           : "bg-white border-gray-200"
       )}
     >
-      {/* Logo and Company Name */}
       <div
         className={cn(
           "p-4 text-gray-700 flex items-center gap-3",
@@ -96,7 +95,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         <div className="flex flex-col gap-3">
           {sidebarLinks.map((link) => {
             const Icon = link.icon;
-            const isActive = pathname === link.href;
+            const isActive =
+              pathname === link.href ||
+              (pathname === "/missed-followup" && link.href === "/followups");
 
             return (
               <Link
@@ -116,7 +117,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 {!isCollapsed && <span>{link.title}</span>}
-                {/* Tooltip for collapsed state */}
                 {isCollapsed && (
                   <div
                     className={cn(

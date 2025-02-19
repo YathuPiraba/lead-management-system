@@ -16,27 +16,21 @@ const Layout: React.FC<AdminLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div
-      className={`h-screen flex overflow-hidden  ${theme.colors.text} `}
-    >
-      {/* Sidebar - Dynamic width */}
+    <div className={`h-screen flex overflow-hidden  ${theme.colors.text} `}>
       <aside
         className={`fixed inset-y-0 z-20 transition-all duration-300 ease-in-out
           ${isSidebarOpen ? "w-64" : "w-20"} ${
-        isDarkMode ? "bg-gray-300" : "bg-gray-100"
-      } `}
+          isDarkMode ? "bg-gray-300" : "bg-gray-100"
+        } `}
       >
-        <div className="h-full shadow">
+        <div className="h-full shadow overflow-y-auto side-scroll">
           <Sidebar isCollapsed={!isSidebarOpen} onToggle={toggleSidebar} />
         </div>
       </aside>
-
-      {/* Main Content Wrapper - Dynamic margin */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out
         ${isSidebarOpen ? "ml-64" : "ml-20"}`}
       >
-        {/* Navbar - Dynamic left offset */}
         <nav
           className={`fixed top-0 right-0 z-30 transition-all duration-300 ease-in-out
           ${isSidebarOpen ? "left-64" : "left-20"}`}
@@ -47,8 +41,6 @@ const Layout: React.FC<AdminLayoutProps> = ({ children }) => {
             <Navbar />
           </div>
         </nav>
-
-        {/* Main Content - Scrollable */}
         <main
           className={` ${
             isDarkMode ? "bg-customDark" : "bg-gray-100"

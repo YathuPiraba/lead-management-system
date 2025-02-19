@@ -22,7 +22,6 @@ const CallLogsPage = () => {
     studentName: "",
     phone: "",
     status: "",
-    notes: "",
     date: undefined as string | undefined,
   });
   const [openPopover, setOpenPopover] = useState<{ [key: string]: boolean }>({
@@ -30,7 +29,6 @@ const CallLogsPage = () => {
     phone: false,
     date: false,
     status: false,
-    notes: false,
   });
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
@@ -136,34 +134,51 @@ const CallLogsPage = () => {
                         date: "Date - Time",
                         status: "Status",
                         notes: "Notes",
-                      }).map(([key, label]) => (
-                        <TableHead
-                          key={key}
-                          className={`${
-                            columnWidths[key as keyof typeof columnWidths]
-                          } whitespace-nowrap`}
-                        >
-                          <div className="flex items-center justify-between">
-                            {label}
-                            <FilterPopover
-                              column={key}
-                              type={
-                                key === "date"
-                                  ? "date"
-                                  : key === "status"
-                                  ? "status"
-                                  : "text"
-                              }
-                              value={filters[key as keyof typeof filters]}
-                              onValueChange={(value) =>
-                                handleFilterChange(key, value)
-                              }
-                              open={openPopover[key]}
-                              onOpenChange={() => togglePopover(key)}
-                            />
-                          </div>
-                        </TableHead>
-                      ))}
+                      }).map(([key, label]) => {
+                        if (key === "notes") {
+                          return (
+                            <TableHead
+                              key={key}
+                              className={`${
+                                columnWidths[key as keyof typeof columnWidths]
+                              } whitespace-nowrap`}
+                            >
+                              <div className="flex items-center justify-between">
+                                {label}
+                              </div>
+                            </TableHead>
+                          );
+                        }
+
+                        return (
+                          <TableHead
+                            key={key}
+                            className={`${
+                              columnWidths[key as keyof typeof columnWidths]
+                            } whitespace-nowrap`}
+                          >
+                            <div className="flex items-center justify-between">
+                              {label}
+                              <FilterPopover
+                                column={key}
+                                type={
+                                  key === "date"
+                                    ? "date"
+                                    : key === "status"
+                                    ? "status"
+                                    : "text"
+                                }
+                                value={filters[key as keyof typeof filters]}
+                                onValueChange={(value) =>
+                                  handleFilterChange(key, value)
+                                }
+                                open={openPopover[key]}
+                                onOpenChange={() => togglePopover(key)}
+                              />
+                            </div>
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
                   </TableHeader>
                   <TableBody>

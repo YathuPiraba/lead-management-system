@@ -10,23 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Calendar, Loader } from "lucide-react";
-import {
-  CallLogResponse,
-  getCallLogsWithFollowups,
-  getFollowupStats,
-} from "@/lib/followups.api";
+import { ExpiredResponse, getExpiredFollowups } from "@/lib/followups.api";
 import { PaginationInfo } from "@/lib/call-logs.api";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
-interface FollowupStats {
-  dueToday: number;
-  completedToday: number;
-  upcoming: number;
-  missedCallLogs: number;
-}
-
-const FollowupsPage = () => {
+const MissedFollowup = () => {
   const [filters, setFilters] = useState({
     studentName: "",
     phone: "",
@@ -40,7 +29,7 @@ const FollowupsPage = () => {
     status: false,
   });
   const [loading, setLoading] = useState(true);
-  const [followups, setFollowups] = useState<CallLogResponse[]>([]);
+  const [followups, setFollowups] = useState<ExpiredResponse[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
     totalPages: 1,
@@ -50,31 +39,9 @@ const FollowupsPage = () => {
     itemsPerPage: 10,
   });
 
-  const [followupStats, setFollowupStats] = useState<FollowupStats>({
-    dueToday: 0,
-    completedToday: 0,
-    upcoming: 0,
-    missedCallLogs: 0,
-  });
-
-  const fetchFollowupStats = async () => {
+  const fetchExpiredFollowups = async (page: number = 1) => {
     try {
-      const res = await getFollowupStats();
-      if (res?.data) {
-        setFollowupStats(res.data as FollowupStats);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchFollowupStats();
-  }, []);
-
-  const fetchFollowups = async (page: number = 1) => {
-    try {
-      const res = await getCallLogsWithFollowups({
+      const res = await getExpiredFollowups({
         page,
         limit: pagination.itemsPerPage,
         ...filters,
@@ -91,7 +58,7 @@ const FollowupsPage = () => {
   };
 
   useEffect(() => {
-    fetchFollowups(pagination.currentPage);
+    fetchExpiredFollowups(pagination.currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination.currentPage]);
 
@@ -110,66 +77,12 @@ const FollowupsPage = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Follow-ups</h1>
-        <Link href={"/missed-followup"}>
-          <Button>Missed Follow-ups</Button>
+        <h1 className="text-2xl font-bold">Missed Follow-ups</h1>
+        <Link href={"/followups"}>
+          <Button>Follow-ups</Button>
         </Link>
       </div>
-
-      {/* Today's Follow-ups */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-orange-600">Due Today</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{followupStats.dueToday}</div>
-            <p className="text-sm text-gray-500">Follow-ups remaining</p>
-          </CardContent>
-        </Card>
-
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-green-600">Completed Today</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
-              {followupStats.completedToday}
-            </div>
-            <p className="text-sm text-gray-500">Tasks finished</p>
-          </CardContent>
-        </Card>
-
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-blue-600">Upcoming</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="text-lg font-bold">{followupStats.upcoming}</div>
-            <p className="text-sm text-gray-500">Tasks for next week</p>
-          </CardContent>
-        </Card>
-
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-red-600 text-center">
-              Missed Calls
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
-              {followupStats.missedCallLogs}
-            </div>
-            <p className="text-sm text-gray-500">Expired follow-ups</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Follow-ups Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>All Follow-ups</CardTitle>
-        </CardHeader>
         <CardContent>
           <>
             <div>
@@ -178,7 +91,7 @@ const FollowupsPage = () => {
                   <TableRow>
                     <TableHead>Lead No</TableHead>
                     <TableHead>Student Name</TableHead>
-                    <TableHead>Follow-up Date</TableHead>
+                    <TableHead>Follow-up OverDue</TableHead>
                     <TableHead>Follow-up Count</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Completed</TableHead>
@@ -196,7 +109,7 @@ const FollowupsPage = () => {
                         {followup.studentName}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {followup.followupDate}
+                        {followup.daysOverdue}
                       </TableCell>
                       <TableCell className="text-center">
                         {followup.followupCount}
@@ -266,4 +179,4 @@ const FollowupsPage = () => {
   );
 };
 
-export default FollowupsPage;
+export default MissedFollowup;

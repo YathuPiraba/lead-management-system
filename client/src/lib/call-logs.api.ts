@@ -35,7 +35,6 @@ export const getCallLogs = async (
     phone?: string;
     date?: string;
     status?: string;
-    notes?: string;
   }
 ): Promise<PaginatedApiResponse<CallLogType> | undefined> => {
   try {
@@ -49,7 +48,6 @@ export const getCallLogs = async (
         phone: params?.phone,
         date: params?.date,
         status: params?.status,
-        notes: params?.notes,
       },
     });
 

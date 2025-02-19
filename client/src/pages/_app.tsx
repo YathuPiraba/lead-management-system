@@ -16,22 +16,18 @@ const MyApp = ({ Component, pageProps, router }: AppProps) => {
   const { isAuthenticated, isLoading } = useAuth();
   const [loaded, setLoaded] = useState(false);
 
-  // Wait for authentication to resolve
   useEffect(() => {
-    // Only redirect if authentication is resolved and user is not authenticated
     if (!isLoading && loaded && !isAuthenticated && !isLayoutExcluded) {
       router.push("/");
     }
   }, [isAuthenticated, isLoading, isLayoutExcluded, loaded, router]);
-  
+
   useEffect(() => {
-    // Ensure the loaded state is set only once authentication is resolved
     if (!isLoading) {
       setLoaded(true);
     }
   }, [isLoading]);
 
-  // Prevent rendering until authentication is resolved
   if (!loaded) {
     console.log("Waiting for authentication state...");
     return null;
