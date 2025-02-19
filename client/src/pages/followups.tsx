@@ -13,6 +13,7 @@ import { Calendar, Loader, Plus } from "lucide-react";
 import {
   CallLogResponse,
   getCallLogsWithFollowups,
+  getExpiredFollowups,
   getFollowupStats,
 } from "@/lib/followups.api";
 import { PaginationInfo } from "@/lib/call-logs.api";
@@ -22,6 +23,7 @@ interface FollowupStats {
   dueToday: number;
   completedToday: number;
   upcoming: number;
+  missedCallLogs: number;
 }
 
 const FollowupsPage = () => {
@@ -52,6 +54,7 @@ const FollowupsPage = () => {
     dueToday: 0,
     completedToday: 0,
     upcoming: 0,
+    missedCallLogs: 0,
   });
 
   const fetchFollowupStats = async () => {
@@ -87,8 +90,30 @@ const FollowupsPage = () => {
     }
   };
 
+  const fetchExpiredFollowups = async (page: number = 1) => {
+    try {
+      const res = await getExpiredFollowups({
+        page,
+        limit: pagination.itemsPerPage,
+        ...filters,
+      });
+
+      console.log(res);
+
+      // if (res) {
+      //   setPagination(res.pagination);
+      //   setFollowups(res.data);
+      // }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchFollowups(pagination.currentPage);
+    fetchExpiredFollowups(pagination.currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination.currentPage]);
 

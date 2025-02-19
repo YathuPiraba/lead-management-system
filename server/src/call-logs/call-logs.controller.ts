@@ -69,4 +69,31 @@ export class CallLogsController {
       code: 'SUCCESS',
     };
   }
+
+  @Get('expired')
+  async getExpiredFollowups(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('studentName') studentName?: string,
+    @Query('phone') phone?: string,
+    @Query('date') date?: string,
+    @Query('status') status?: string,
+    @Query('sort') sort?: 'ASC' | 'DESC',
+  ) {
+    const expiredFollowup = await this.callLogsService.getExpiredFollowups(
+      page,
+      limit,
+      studentName,
+      phone,
+      date,
+      status,
+      sort,
+    );
+    return {
+      data: expiredFollowup,
+      message: ' Expired Followups fetched successfully',
+      status: 200,
+      code: 'SUCCESS',
+    };
+  }
 }

@@ -18,6 +18,27 @@ export interface Followup {
   } | null;
 }
 
+export interface ExpiredResponse {
+  id: string;
+  studentName: string;
+  phone: string;
+  calldate: string;
+  status: string;
+  notes: string;
+  leadNo: string;
+  followupCount: number;
+  lastFollowupDate: string;
+  daysOverdue: number;
+  assignedStaff: AssignedStaff | null;
+  lastFollowupNotes: string;
+  followups: Followup[];
+}
+
+export interface AssignedStaff {
+  id: string;
+  name: string;
+}
+
 export interface CallLogResponse {
   id: string;
   studentName: string;
@@ -71,5 +92,39 @@ export const getFollowupStats = async () => {
     return response.data;
   } catch (err) {
     console.error(err);
+  }
+};
+
+export const getExpiredFollowups = async (
+  params?: PaginationParams & {
+    studentName?: string;
+    phone?: string;
+    date?: string;
+    status?: string;
+    notes?: string;
+  }
+): Promise<PaginatedApiResponse<ExpiredResponse> | undefined> => {
+  try {
+    const response = await apiClient.get<
+      ApiResponse<{ data: ExpiredResponse[]; pagination: PaginationInfo }>
+    >("/call-logs/expired", {
+      params: {
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+        studentName: params?.studentName,
+        phone: params?.phone,
+        date: params?.date,
+        status: params?.status,
+        notes: params?.notes,
+      },
+    });
+
+    const { data, pagination } = response.data.data;
+
+    // You can map the data or process it here if needed
+    return { data, pagination };
+  } catch (error) {
+    console.error(error);
+    return undefined;
   }
 };

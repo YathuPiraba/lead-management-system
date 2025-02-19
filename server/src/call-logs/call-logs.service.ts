@@ -129,9 +129,11 @@ export class CallLogsService {
       order: { created_at: 'DESC' },
     });
 
+    // Check and update expiry status for call logs
+    await this.updateExpiredCallLogs(data);
+
     const repeatFollowupLogs = data.filter((log) => log.repeat_followup);
 
-    // Extract today's repeat follow-ups
     const repeatFollowupsToday = repeatFollowupLogs.filter((log) =>
       log.followups.some(
         (followup) =>
@@ -152,8 +154,16 @@ export class CallLogsService {
       return null;
     };
 
-    const remainingData = repeatFollowupLogs
-      .filter((log) => !repeatFollowupsToday.includes(log))
+    // Filter out logs with isExpired=true
+    const activeCallLogs = repeatFollowupLogs.filter((log) => !log.isExpired);
+
+    // Split between today's followups and remaining active ones
+    const todayActiveLogs = activeCallLogs.filter((log) =>
+      repeatFollowupsToday.includes(log),
+    );
+
+    const remainingActiveLogs = activeCallLogs
+      .filter((log) => !todayActiveLogs.includes(log))
       .sort((a, b) => {
         const dateA = getLatestFollowupDate(a)?.getTime() || 0;
         const dateB = getLatestFollowupDate(b)?.getTime() || 0;
@@ -161,7 +171,7 @@ export class CallLogsService {
       });
 
     // Combine and get total filtered count
-    const filteredData = [...repeatFollowupsToday, ...remainingData];
+    const filteredData = [...todayActiveLogs, ...remainingActiveLogs];
     const total = filteredData.length;
 
     // Paginate results
@@ -172,6 +182,7 @@ export class CallLogsService {
       .slice(startIndex, endIndex)
       .map((log) => {
         const latestFollowupDate = getLatestFollowupDate(log);
+
         return {
           id: log.id,
           studentName: log.student?.name || 'N/A',
@@ -269,7 +280,18 @@ export class CallLogsService {
       ),
     );
 
-    // Get follow-ups due today that aren't completed
+    const [data, _] = await this.callLogRepository.findAndCount({
+      relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
+      order: { created_at: 'DESC' },
+    });
+
+    // Check and update expiry status for call logs
+    await this.updateExpiredCallLogs(data);
+
+    const missedCallLogs = await this.callLogRepository.count({
+      where: { isExpired: true },
+    });
+
     const dueToday = await this.followUpRepository.count({
       where: {
         followup_date: Between(today, endOfDay),
@@ -298,7 +320,180 @@ export class CallLogsService {
       dueToday: dueToday || 0,
       completedToday: completedToday || 0,
       upcoming: upcoming || 0,
+      missedCallLogs: missedCallLogs || 0,
     };
+  }
+
+  async getExpiredFollowups(
+    page = 1,
+    limit = 10,
+    studentName?: string,
+    phone?: string,
+    date?: string,
+    status?: string,
+    sort: 'ASC' | 'DESC' = 'DESC',
+  ): Promise<any> {
+    const whereConditions: any[] = [];
+
+    if (studentName && studentName.trim()) {
+      whereConditions.push({ student: { name: ILike(`%${studentName}%`) } });
+    }
+    if (phone && phone.trim()) {
+      whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
+    }
+    if (status && status.trim()) {
+      whereConditions.push({ status: ILike(`%${status}%`) });
+    }
+    if (date && date.trim()) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      whereConditions.push({ call_date: Between(startOfDay, endOfDay) });
+    }
+
+    // Get logs where isExpired is true
+    const baseCondition = { isExpired: true };
+    const finalConditions =
+      whereConditions.length > 0
+        ? [baseCondition, ...whereConditions]
+        : baseCondition;
+
+    const [data, total] = await this.callLogRepository.findAndCount({
+      relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
+      where: finalConditions,
+      order: { created_at: sort },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    // Sort logs by the date of the latest followup
+    const sortedData = data.sort((a, b) => {
+      const getLatestFollowupDate = (log: any): number => {
+        if (log.followups && log.followups.length > 0) {
+          return Math.max(
+            ...log.followups.map((f) => new Date(f.followup_date).getTime()),
+          );
+        }
+        return 0;
+      };
+
+      const dateA = getLatestFollowupDate(a);
+      const dateB = getLatestFollowupDate(b);
+
+      return sort === 'DESC' ? dateB - dateA : dateA - dateB;
+    });
+
+    // Format the data for response
+    const formattedExpiredLogs = sortedData.map((log) => {
+      // Find the latest followup
+      const latestFollowup =
+        log.followups.length > 0
+          ? log.followups.reduce((latest, current) => {
+              const latestDate = new Date(latest.followup_date).getTime();
+              const currentDate = new Date(current.followup_date).getTime();
+              return currentDate > latestDate ? current : latest;
+            }, log.followups[0])
+          : null;
+
+      // Calculate days overdue
+      const daysOverdue = latestFollowup
+        ? (() => {
+            const now = new Date();
+            const followupDate = new Date(latestFollowup.followup_date);
+            const diffMs = now.getTime() - followupDate.getTime();
+
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor(
+              (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+            );
+            const minutes = Math.floor(
+              (diffMs % (1000 * 60 * 60)) / (1000 * 60),
+            );
+
+            return `${days} days ${hours} hrs ${minutes} mins`;
+          })()
+        : '0 days 0 hrs 0 mins';
+
+      return {
+        id: log.id,
+        studentName: log.student?.name || 'N/A',
+        phone: log.student?.phone_number || 'N/A',
+        calldate: formatTo12Hour(log.call_date),
+        status: log.status,
+        notes: log.notes,
+        leadNo: log.leadNo,
+        followupCount: log.followup_count,
+        lastFollowupDate: latestFollowup
+          ? formatTo12Hour(new Date(latestFollowup.followup_date))
+          : 'N/A',
+        daysOverdue,
+        assignedStaff: latestFollowup?.assignedStaff
+          ? {
+              id: latestFollowup.assignedStaff.id,
+              name: latestFollowup.assignedStaff.firstName,
+            }
+          : null,
+        lastFollowupNotes: latestFollowup?.notes || 'No notes',
+        followups: log.followups.map((followup) => ({
+          id: followup.id,
+          followupDate: formatTo12Hour(new Date(followup.followup_date)),
+          completed: followup.completed,
+          notes: followup.notes,
+          assignedStaff: followup.assignedStaff
+            ? {
+                id: followup.assignedStaff.id,
+                name: followup.assignedStaff.firstName,
+              }
+            : null,
+        })),
+      };
+    });
+
+    return {
+      data: formattedExpiredLogs,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        totalItems: total,
+        itemsPerPage: limit,
+      },
+    };
+  }
+
+  private async updateExpiredCallLogs(logs: any[]): Promise<void> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const logsToUpdate = logs.filter((log) => {
+      if (log.followups && log.followups.length > 0) {
+        const latestFollowupDate = new Date(
+          Math.max(
+            ...log.followups.map((f) => new Date(f.followup_date).getTime()),
+          ),
+        );
+
+        const latestFollowup = log.followups.find(
+          (f) =>
+            new Date(f.followup_date).getTime() ===
+            latestFollowupDate.getTime(),
+        );
+
+        return (
+          latestFollowup &&
+          !latestFollowup.completed &&
+          latestFollowupDate < todayStart
+        );
+      }
+      return false;
+    });
+
+    if (logsToUpdate.length > 0) {
+      logsToUpdate.forEach((log) => (log.isExpired = true));
+      await this.callLogRepository.save(logsToUpdate);
+    }
   }
 }
 
