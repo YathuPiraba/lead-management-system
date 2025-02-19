@@ -14,6 +14,62 @@ export class CallLogsService {
     private followUpRepository: Repository<CallLogFollowup>,
   ) {}
 
+  /**
+   * Gets the latest followup from an array of followups
+   * @param followups Array of followup objects
+   * @returns The latest followup object or null if none exists
+   */
+  private getLatestFollowup(followups: any[]): any | null {
+    if (!followups?.length) return null;
+
+    return [...followups].sort(
+      (a, b) =>
+        new Date(b.followup_date).getTime() -
+        new Date(a.followup_date).getTime(),
+    )[0];
+  }
+
+  /**
+   * Gets the latest followup date from an array of followups
+   * @param followups Array of followup objects
+   * @returns Date object of the latest followup or null if none exists
+   */
+  private getLatestFollowupDate(followups: any[]): Date | null {
+    if (!followups?.length) return null;
+
+    return new Date(
+      Math.max(...followups.map((f) => new Date(f.followup_date).getTime())),
+    );
+  }
+
+  /**
+   * Gets the latest followup note
+   * @param followups Array of followup objects
+   * @returns Latest followup note string or null if none exists
+   */
+  private getLatestFollowupNote(followups: any[]): string | null {
+    const latestFollowup = this.getLatestFollowup(followups);
+    return latestFollowup?.notes || null;
+  }
+
+  /**
+   * Calculates how overdue a followup is compared to current time
+   * @param followupDate The date to compare against current time
+   * @returns Formatted string showing days, hours and minutes overdue
+   */
+  private calculateOverdueDuration(followupDate: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - followupDate.getTime();
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+    );
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    return `${days} days ${hours} hrs ${minutes} mins`;
+  }
+
   async getCallLogs(
     page = 1,
     limit = 10,
@@ -55,26 +111,13 @@ export class CallLogsService {
       take: limit,
     });
 
-    // Function to get the latest follow-up note
-    const getLatestFollowupNote = (log: any): string | null => {
-      if (log.followups?.length) {
-        const latestFollowup = [...log.followups].sort(
-          (a, b) =>
-            new Date(b.followup_date).getTime() -
-            new Date(a.followup_date).getTime(),
-        )[0];
-        return latestFollowup.notes || null;
-      }
-      return null;
-    };
-
     const formattedCallLogs = data.map((log) => ({
       id: log.id,
       studentName: log.student.name,
       phone: log.student.phone_number,
       date: formatTo12Hour(log.call_date),
       status: log.status,
-      notes: getLatestFollowupNote(log) || log.notes,
+      notes: this.getLatestFollowupNote(log.followups) || log.notes,
     }));
 
     return {
@@ -142,18 +185,6 @@ export class CallLogsService {
       ),
     );
 
-    // Get the most recent followup date for each log
-    const getLatestFollowupDate = (log: any): Date | null => {
-      if (log.followups && log.followups.length > 0) {
-        return new Date(
-          Math.max(
-            ...log.followups.map((f) => new Date(f.followup_date).getTime()),
-          ),
-        );
-      }
-      return null;
-    };
-
     // Filter out logs with isExpired=true
     const activeCallLogs = repeatFollowupLogs.filter((log) => !log.isExpired);
 
@@ -165,8 +196,8 @@ export class CallLogsService {
     const remainingActiveLogs = activeCallLogs
       .filter((log) => !todayActiveLogs.includes(log))
       .sort((a, b) => {
-        const dateA = getLatestFollowupDate(a)?.getTime() || 0;
-        const dateB = getLatestFollowupDate(b)?.getTime() || 0;
+        const dateA = this.getLatestFollowupDate(a.followups)?.getTime() || 0;
+        const dateB = this.getLatestFollowupDate(b.followups)?.getTime() || 0;
         return dateB - dateA;
       });
 
@@ -181,8 +212,7 @@ export class CallLogsService {
     const formattedCallLogs = filteredData
       .slice(startIndex, endIndex)
       .map((log) => {
-        const latestFollowupDate = getLatestFollowupDate(log);
-
+        const latestFollowupDate = this.getLatestFollowupDate(log.followups);
         return {
           id: log.id,
           studentName: log.student?.name || 'N/A',
@@ -369,50 +399,19 @@ export class CallLogsService {
 
     // Sort logs by the date of the latest followup
     const sortedData = data.sort((a, b) => {
-      const getLatestFollowupDate = (log: any): number => {
-        if (log.followups && log.followups.length > 0) {
-          return Math.max(
-            ...log.followups.map((f) => new Date(f.followup_date).getTime()),
-          );
-        }
-        return 0;
-      };
-
-      const dateA = getLatestFollowupDate(a);
-      const dateB = getLatestFollowupDate(b);
-
+      const dateA = this.getLatestFollowupDate(a.followups)?.getTime() || 0;
+      const dateB = this.getLatestFollowupDate(b.followups)?.getTime() || 0;
       return sort === 'DESC' ? dateB - dateA : dateA - dateB;
     });
 
     // Format the data for response
     const formattedExpiredLogs = sortedData.map((log) => {
       // Find the latest followup
-      const latestFollowup =
-        log.followups.length > 0
-          ? log.followups.reduce((latest, current) => {
-              const latestDate = new Date(latest.followup_date).getTime();
-              const currentDate = new Date(current.followup_date).getTime();
-              return currentDate > latestDate ? current : latest;
-            }, log.followups[0])
-          : null;
+      const latestFollowup = this.getLatestFollowup(log.followups);
 
       // Calculate days overdue
       const daysOverdue = latestFollowup
-        ? (() => {
-            const now = new Date();
-            const followupDate = new Date(latestFollowup.followup_date);
-            const diffMs = now.getTime() - followupDate.getTime();
-
-            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const hours = Math.floor(
-              (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-            );
-            const minutes = Math.floor(
-              (diffMs % (1000 * 60 * 60)) / (1000 * 60),
-            );
-
-            return `${days} days ${hours} hrs ${minutes} mins`;
-          })()
+        ? this.calculateOverdueDuration(new Date(latestFollowup.followup_date))
         : '0 days 0 hrs 0 mins';
 
       return {
