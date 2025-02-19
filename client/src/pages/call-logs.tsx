@@ -60,8 +60,7 @@ const CallLogsPage = () => {
 
   useEffect(() => {
     fetchCallLogs(pagination.currentPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, pagination.currentPage]);
+  }, [pagination.currentPage]);
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({
@@ -104,7 +103,7 @@ const CallLogsPage = () => {
     no: "w-16",
     studentName: "w-48",
     phone: "w-44",
-    date: "w-52",
+    date: "w-56",
     status: "w-28",
     notes: "w-96",
   };

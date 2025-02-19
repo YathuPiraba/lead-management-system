@@ -38,7 +38,7 @@ const FilterPopover = ({
       <Button
         variant="ghost"
         size="sm"
-        className={`h-8 w-8 p-0 ${value ? "text-blue-600" : ""}`}
+        className={`h-8 w-8 p-0 ml-auto ${value ? "text-blue-600" : ""}`}
       >
         <Search className="h-4 w-4" />
       </Button>
@@ -64,7 +64,13 @@ const FilterPopover = ({
               mode="single"
               selected={value ? new Date(value) : undefined}
               onSelect={(date) => {
-                onValueChange(date?.toISOString());
+                if (date) {
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, "0");
+                  const day = String(date.getDate()).padStart(2, "0");
+                  const formattedDate = `${year}-${month}-${day}`;
+                  onValueChange(formattedDate);
+                }
               }}
               className="rounded-md border"
             />
@@ -74,10 +80,8 @@ const FilterPopover = ({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
               </SelectContent>
             </Select>
           ) : (

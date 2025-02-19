@@ -92,7 +92,6 @@ const FollowupsPage = () => {
 
   useEffect(() => {
     fetchFollowups(pagination.currentPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination.currentPage]);
 
   const handlePageChange = (newPage: number) => {
@@ -118,46 +117,50 @@ const FollowupsPage = () => {
 
       {/* Today's Follow-ups */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
+        <Card className="p-1 h-auto">
+          <CardHeader className="pb-2">
             <CardTitle className="text-orange-600">Due Today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">{followupStats.dueToday}</div>
+            <div className="text-lg mb-1 font-bold">
+              {followupStats.dueToday}
+            </div>
             <p className="text-sm text-gray-500">Follow-ups remaining</p>
           </CardContent>
         </Card>
 
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
+        <Card className="p-1 h-auto">
+          <CardHeader className="pb-2">
             <CardTitle className="text-green-600">Completed Today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">
+            <div className="text-lg mb-1  font-bold">
               {followupStats.completedToday}
             </div>
             <p className="text-sm text-gray-500">Tasks finished</p>
           </CardContent>
         </Card>
 
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
+        <Card className="p-1 h-auto">
+          <CardHeader className="pb-2">
             <CardTitle className="text-blue-600">Upcoming</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="text-lg font-bold">{followupStats.upcoming}</div>
+            <div className="text-lg mb-1  font-bold">
+              {followupStats.upcoming}
+            </div>
             <p className="text-sm text-gray-500">Tasks for next week</p>
           </CardContent>
         </Card>
 
-        <Card className="p-2 h-auto">
-          <CardHeader className="pb-1">
+        <Card className="p-1 h-auto">
+          <CardHeader className="pb-2">
             <CardTitle className="text-red-600 text-center">
               Missed Calls
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">
+            <div className="text-lg mb-1 font-bold">
               {followupStats.missedCallLogs}
             </div>
             <p className="text-sm text-gray-500">Expired follow-ups</p>

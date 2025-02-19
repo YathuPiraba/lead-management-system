@@ -88,7 +88,7 @@ export class CallLogsService {
       whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
     }
     if (status?.trim()) {
-      whereConditions.push({ status: ILike(`%${status}%`) });
+      whereConditions.push({ status });
     }
     if (date?.trim()) {
       const startOfDay = new Date(date);
@@ -151,7 +151,7 @@ export class CallLogsService {
       whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
     }
     if (status && status.trim()) {
-      whereConditions.push({ status: ILike(`%${status}%`) });
+      whereConditions.push({ status });
     }
     if (date && date.trim()) {
       const startOfDay = new Date(date);
@@ -372,7 +372,7 @@ export class CallLogsService {
       whereConditions.push({ student: { phone_number: ILike(`%${phone}%`) } });
     }
     if (status && status.trim()) {
-      whereConditions.push({ status: ILike(`%${status}%`) });
+      whereConditions.push({ status });
     }
     if (date && date.trim()) {
       const startOfDay = new Date(date);
