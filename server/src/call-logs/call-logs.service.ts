@@ -140,6 +140,7 @@ export class CallLogsService {
     phone?: string,
     date?: string,
     status?: string,
+    leadNo?: string,
     sort: 'ASC' | 'DESC' = 'DESC',
   ): Promise<any> {
     const whereConditions: any[] = [];
@@ -153,6 +154,11 @@ export class CallLogsService {
     if (status && status.trim()) {
       whereConditions.push({ status });
     }
+
+    if (leadNo && leadNo.trim()) {
+      whereConditions.push({ leadNo: ILike(`%${leadNo}%`) });
+    }
+
     if (date && date.trim()) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
@@ -361,6 +367,7 @@ export class CallLogsService {
     phone?: string,
     date?: string,
     status?: string,
+    leadNo?: string,
     sort: 'ASC' | 'DESC' = 'DESC',
   ): Promise<any> {
     const whereConditions: any[] = [];
@@ -374,6 +381,11 @@ export class CallLogsService {
     if (status && status.trim()) {
       whereConditions.push({ status });
     }
+
+    if (leadNo && leadNo.trim()) {
+      whereConditions.push({ leadNo: ILike(`%${leadNo}%`) });
+    }
+
     if (date && date.trim()) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);

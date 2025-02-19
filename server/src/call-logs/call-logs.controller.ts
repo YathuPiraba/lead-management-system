@@ -39,6 +39,7 @@ export class CallLogsController {
     @Query('phone') phone?: string,
     @Query('date') date?: string,
     @Query('status') status?: string,
+    @Query('leadNo') leadNo?: string,
     @Query('sort') sort?: 'ASC' | 'DESC',
   ) {
     const callLogsfolowups =
@@ -49,6 +50,7 @@ export class CallLogsController {
         phone,
         date,
         status,
+        leadNo,
         sort,
       );
     return {
@@ -78,6 +80,7 @@ export class CallLogsController {
     @Query('phone') phone?: string,
     @Query('date') date?: string,
     @Query('status') status?: string,
+    @Query('leadNo') leadNo?: string,
     @Query('sort') sort?: 'ASC' | 'DESC',
   ) {
     const expiredFollowup = await this.callLogsService.getExpiredFollowups(
@@ -87,6 +90,7 @@ export class CallLogsController {
       phone,
       date,
       status,
+      leadNo,
       sort,
     );
     return {

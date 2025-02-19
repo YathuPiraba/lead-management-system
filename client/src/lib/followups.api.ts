@@ -58,6 +58,7 @@ export const getCallLogsWithFollowups = async (
     phone?: string;
     date?: string;
     status?: string;
+    leadNo?: string;
   }
 ): Promise<PaginatedApiResponse<CallLogResponse> | undefined> => {
   try {
@@ -71,6 +72,7 @@ export const getCallLogsWithFollowups = async (
         phone: params?.phone,
         date: params?.date,
         status: params?.status,
+        leadNo: params?.leadNo,
       },
     });
 
@@ -99,6 +101,7 @@ export const getExpiredFollowups = async (
     phone?: string;
     date?: string;
     status?: string;
+    leadNo?: string;
   }
 ): Promise<PaginatedApiResponse<ExpiredResponse> | undefined> => {
   try {
@@ -112,6 +115,7 @@ export const getExpiredFollowups = async (
         phone: params?.phone,
         date: params?.date,
         status: params?.status,
+        leadNo: params?.leadNo,
       },
     });
 
