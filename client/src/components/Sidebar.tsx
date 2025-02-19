@@ -69,7 +69,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     <div
       className={cn(
         "h-full border-r transition-all duration-300 flex flex-col",
-        isDarkMode ? "bg-customDark border-gray-700" : "bg-white border-gray-200"
+        isDarkMode
+          ? "bg-customDark border-gray-700"
+          : "bg-white border-gray-200"
       )}
     >
       {/* Logo and Company Name */}
@@ -144,7 +146,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           variant="ghost"
           className={cn(
             "w-full flex items-center justify-center",
-            isDarkMode ? "text-gray-200" : "text-black"
+            isDarkMode
+              ? "text-gray-200 hover:bg-gray-700 hover:text-white"
+              : "text-black"
           )}
           onClick={onToggle}
         >
