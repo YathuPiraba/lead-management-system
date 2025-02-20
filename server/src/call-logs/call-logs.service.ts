@@ -172,10 +172,31 @@ export class CallLogsService {
       });
     }
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const now = new Date();
+
+    // Set to start of today in UTC (00:00:00)
+    const todayStart = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+      ),
+    );
+
+    const todayEnd = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
 
     const [data, _] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
@@ -479,15 +500,25 @@ export class CallLogsService {
   }
 
   private async updateExpiredCallLogs(logs: any[]): Promise<void> {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const now = new Date();
+
+    // Set to start of today in UTC (00:00:00)
+    const todayStart = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+      ),
+    );
 
     const logsToUpdate = logs.filter((log) => {
       if (log.followups && log.followups.length > 0) {
         const latestFollowupDate = this.getLatestFollowupDate(log.followups);
 
         const latestFollowup = this.getLatestFollowup(log.followups);
-
         return (
           latestFollowup &&
           !latestFollowup.completed &&
