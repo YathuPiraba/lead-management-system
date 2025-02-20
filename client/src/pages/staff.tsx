@@ -81,7 +81,8 @@ const StaffPage = () => {
 
   useEffect(() => {
     fetchStaffList(pagination.currentPage, searchQuery);
-  }, [pagination.currentPage, pagination.itemsPerPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.currentPage, searchQuery]);
 
   useEffect(() => {
     fetchStaffStats();

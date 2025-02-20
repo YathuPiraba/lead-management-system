@@ -60,6 +60,7 @@ const CallLogsPage = () => {
 
   useEffect(() => {
     fetchCallLogs(pagination.currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.currentPage]);
 
   const handleFilterChange = (key: string, value: any) => {

@@ -95,7 +95,8 @@ const FollowupsPage = () => {
 
   useEffect(() => {
     fetchFollowups(pagination.currentPage);
-  }, [filters, pagination.currentPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.currentPage]);
 
   const handlePageChange = (newPage: number) => {
     setPagination((prev) => ({ ...prev, currentPage: newPage }));
