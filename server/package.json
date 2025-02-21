@@ -9,7 +9,7 @@
     "build": "set NODE_ENV=production && nest build",
     "build:prod": "set NODE_ENV=production && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "set NODE_ENV=development && ts-node -r tsconfig-paths/register src/main.ts",
+    "start": "set NODE_ENV=production && ts-node -r tsconfig-paths/register src/main.ts",
     "start:dev": "nodemon --watch src/**/*.ts --ext ts,js --exec \"set NODE_ENV=development && ts-node -r tsconfig-paths/register src/main.ts\"",
     "start:debug": "set NODE_ENV=development && ts-node -r tsconfig-paths/register src/main.ts --watch --debug",
     "start:prod": "set NODE_ENV=production node dist/main",
