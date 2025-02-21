@@ -91,7 +91,7 @@ export class UsersController {
     if (accessToken && refreshToken) {
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV.trim() === 'production',
         sameSite: this.configService.get('SAME_SITE') || 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
