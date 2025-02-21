@@ -87,14 +87,6 @@ export class UsersController {
       });
     }
 
-    console.log(
-      'NODE_ENV:',
-      process.env.NODE_ENV,
-      process.env.NODE_ENV.trim() === 'production',
-      this.configService.get('SAME_SITE'),
-      this.configService.get('COOKIE_DOMAIN'),
-    );
-
     // If accessToken and refreshToken are present, set the cookies
     if (accessToken && refreshToken) {
       res.cookie('refreshToken', refreshToken, {
