@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { CallLog } from '../call-logs/call-log.entity';
-import { Staff } from 'src/staff/staff.entity';
+import { Staff } from '../staff/staff.entity';
 
 @Entity('call_log_followups')
 export class CallLogFollowup {
