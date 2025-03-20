@@ -89,7 +89,12 @@ export class UsersController {
 
     // If accessToken and refreshToken are present, set the cookies
     if (accessToken && refreshToken) {
-      res.cookie('refreshToken', refreshToken, {
+      const cookieName =
+        process.env.NODE_ENV.trim() === 'production'
+          ? '__Secure-refreshToken'
+          : 'refreshToken';
+
+      res.cookie(cookieName, refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV.trim() === 'production',
         sameSite: this.configService.get('SAME_SITE') || 'none',
