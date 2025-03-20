@@ -115,7 +115,12 @@ export class UsersController {
   @Public()
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const refreshToken = req.cookies['refreshToken'];
+    const cookieName =
+      process.env.NODE_ENV.trim() === 'production'
+        ? '__Secure-refreshToken'
+        : 'refreshToken';
+
+    const refreshToken = req.cookies[cookieName];
 
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token found');
@@ -129,7 +134,7 @@ export class UsersController {
     await this.tokenService.invalidateRefreshToken(payload.sub);
 
     // Remove the refresh token from cookies
-    res.clearCookie('refreshToken', {
+    res.clearCookie(cookieName, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: this.configService.get('SAME_SITE') || 'none',
@@ -143,7 +148,11 @@ export class UsersController {
   @Public()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const refreshToken = req.cookies['refreshToken'];
+    const cookieName =
+      process.env.NODE_ENV.trim() === 'production'
+        ? '__Secure-refreshToken'
+        : 'refreshToken';
+    const refreshToken = req.cookies[cookieName];
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');
