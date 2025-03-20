@@ -30,6 +30,11 @@ import { Public } from 'src/decorators/public.decorator';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from 'src/auth/token.service';
 
+const cookieName =
+  process.env.NODE_ENV.trim() === 'production'
+    ? '__Secure-refreshToken'
+    : 'refreshToken';
+
 @Controller('users')
 export class UsersController {
   constructor(
@@ -89,11 +94,6 @@ export class UsersController {
 
     // If accessToken and refreshToken are present, set the cookies
     if (accessToken && refreshToken) {
-      const cookieName =
-        process.env.NODE_ENV.trim() === 'production'
-          ? '__Secure-refreshToken'
-          : 'refreshToken';
-
       res.cookie(cookieName, refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV.trim() === 'production',
@@ -115,11 +115,6 @@ export class UsersController {
   @Public()
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
-    const cookieName =
-      process.env.NODE_ENV.trim() === 'production'
-        ? '__Secure-refreshToken'
-        : 'refreshToken';
-
     const refreshToken = req.cookies[cookieName];
 
     if (!refreshToken) {
@@ -148,10 +143,6 @@ export class UsersController {
   @Public()
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const cookieName =
-      process.env.NODE_ENV.trim() === 'production'
-        ? '__Secure-refreshToken'
-        : 'refreshToken';
     const refreshToken = req.cookies[cookieName];
 
     if (!refreshToken) {
