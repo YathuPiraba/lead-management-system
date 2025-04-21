@@ -40,7 +40,6 @@ export class CallLogsController {
     @Query('date') date?: string,
     @Query('status') status?: string,
     @Query('leadNo') leadNo?: string,
-    @Query('sort') sort?: 'ASC' | 'DESC',
   ) {
     const callLogsfolowups =
       await this.callLogsService.getCallLogsWithFollowups(
@@ -51,7 +50,6 @@ export class CallLogsController {
         date,
         status,
         leadNo,
-        sort,
       );
     return {
       data: callLogsfolowups,

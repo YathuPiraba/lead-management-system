@@ -141,7 +141,6 @@ export class CallLogsService {
     date?: string,
     status?: string,
     leadNo?: string,
-    sort: 'ASC' | 'DESC' = 'DESC',
   ): Promise<any> {
     const whereConditions: any[] = [];
 
@@ -198,6 +197,7 @@ export class CallLogsService {
       ),
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [data, _] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
       where: whereConditions.length > 0 ? whereConditions : undefined,
@@ -342,6 +342,7 @@ export class CallLogsService {
       ),
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [data, _] = await this.callLogRepository.findAndCount({
       relations: ['student', 'user', 'followups', 'followups.assignedStaff'],
       order: { created_at: 'DESC' },

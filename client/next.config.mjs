@@ -3,9 +3,9 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
 
   // Disable telemetry
-  telemetry: {
-    telemetryDisabled: true,
-  },
+  // telemetry: {
+  //   telemetryDisabled: true,
+  // },
 
   // Disable React DevTools in production
   reactStrictMode: false,
@@ -14,7 +14,7 @@ const nextConfig = {
   compress: true,
 
   // Minimize JS
-  swcMinify: true,
+  // swcMinify: true,
 
   // Disable X-Powered-By header
   poweredByHeader: false,

@@ -23,6 +23,9 @@ export class Student {
   @Column({ type: 'varchar', length: 255 })
   department_of_study: string;
 
+  @Column({ type: 'varchar', length: 20 })
+  status: 'hold' | 'active' | 'lead' | 'reject';
+
   @CreateDateColumn()
   created_at: Date;
 
