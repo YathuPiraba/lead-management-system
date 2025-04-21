@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +11,24 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { getStudentStatsApi } from "@/lib/students.api";
+
+type StatsProps = {
+  totalStudents: number;
+  activeStudents: number;
+  newLeads: number;
+  conversionRate: number;
+};
 
 const StudentsPage = () => {
+  const [stats, setStats] = useState<StatsProps>({
+    totalStudents: 0,
+    activeStudents: 0,
+    newLeads: 0,
+    conversionRate: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+
   const students = [
     {
       id: 1,
@@ -35,6 +51,30 @@ const StudentsPage = () => {
     // Add more sample data as needed
   ];
 
+  const getStudentStats = async () => {
+    setStatsLoading(true);
+    try {
+      const response = await getStudentStatsApi();
+      console.log(response);
+
+      if (
+        response &&
+        typeof response.data === "object" &&
+        response.data !== null
+      ) {
+        setStats(response.data as StatsProps);
+      }
+    } catch (error) {
+      console.error("Error fetching student stats:", error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getStudentStats();
+  }, []);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -52,7 +92,7 @@ const StudentsPage = () => {
             <CardTitle className="text-sm">Total Students</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
+            <div className="text-2xl font-bold">{stats.totalStudents}</div>
           </CardContent>
         </Card>
 
@@ -61,7 +101,7 @@ const StudentsPage = () => {
             <CardTitle className="text-sm">Active Students</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">890</div>
+            <div className="text-2xl font-bold">{stats.activeStudents}</div>
           </CardContent>
         </Card>
 
@@ -70,7 +110,7 @@ const StudentsPage = () => {
             <CardTitle className="text-sm">New Leads</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
+            <div className="text-2xl font-bold">{stats.newLeads}</div>
           </CardContent>
         </Card>
 
@@ -79,7 +119,7 @@ const StudentsPage = () => {
             <CardTitle className="text-sm">Conversion Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24%</div>
+            <div className="text-2xl font-bold">{stats.conversionRate}%</div>
           </CardContent>
         </Card>
       </div>
@@ -120,19 +160,25 @@ const StudentsPage = () => {
                   <TableCell>{student.phone}</TableCell>
                   <TableCell>{student.course}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      student.status === "Active" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-blue-100 text-blue-800"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        student.status === "Active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
                       {student.status}
                     </span>
                   </TableCell>
                   <TableCell>{student.lastContact}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">View</Button>
-                      <Button variant="ghost" size="sm">Edit</Button>
+                      <Button variant="ghost" size="sm">
+                        View
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        Edit
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

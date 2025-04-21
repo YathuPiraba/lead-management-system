@@ -13,4 +13,7 @@ export class CreateStudentDto {
 
   @IsString()
   departmentOfStudy: string;
+
+  @IsString()
+  status: 'hold' | 'active' | 'lead' | 'reject'; // 'lead', 'active', 'inactive', 'reject'
 }

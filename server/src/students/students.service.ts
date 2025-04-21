@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Between, DataSource, Not, Repository } from 'typeorm';
 import { Student } from './student.entity';
 import { CallLog } from '../call-logs/call-log.entity';
 import { AddStudentCallLogDto } from './dto/add-student-call-log.dto';
@@ -24,8 +24,14 @@ export class StudentsService {
     await queryRunner.startTransaction();
 
     try {
-      // Create and save the student
-      const newStudent = this.studentRepository.create(data.student);
+      const studentData = { ...data.student };
+
+      // Override the student status to 'reject' only when repeat_followup is false
+      if (data.callLog && data.callLog.repeat_followup === false) {
+        studentData.status = 'reject';
+      }
+
+      const newStudent = this.studentRepository.create(studentData);
       const savedStudent = await queryRunner.manager.save(Student, newStudent);
 
       // Get the next lead number
@@ -77,5 +83,63 @@ export class StudentsService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async findAll(): Promise<Student[]> {
+    return this.studentRepository.find();
+  }
+
+  async countTotalStudents(): Promise<number> {
+    return this.studentRepository.count({
+      where: {
+        status: Not('reject'),
+      },
+    });
+  }
+  async countStudentsByStatus(
+    status: 'hold' | 'active' | 'lead' | 'reject',
+  ): Promise<number> {
+    return this.studentRepository.count({
+      where: { status },
+    });
+  }
+
+  async countNewLeadsThisWeek(): Promise<number> {
+    const today = new Date();
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    return this.studentRepository.count({
+      where: {
+        status: 'lead',
+        created_at: Between(oneWeekAgo, today),
+      },
+    });
+  }
+
+  async calculateConversionRate(): Promise<number> {
+    // Count leads that converted to active students in the last 30 days
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const totalLeads = await this.studentRepository.count({
+      where: {
+        status: 'lead',
+      },
+    });
+
+    if (totalLeads === 0) {
+      return 0;
+    }
+
+    const convertedLeads = await this.studentRepository.count({
+      where: {
+        status: 'active',
+        created_at: Between(thirtyDaysAgo, today),
+      },
+    });
+
+    return Math.round((convertedLeads / totalLeads) * 100);
   }
 }
