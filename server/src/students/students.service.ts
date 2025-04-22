@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, Not, Repository } from 'typeorm';
+import { Between, DataSource, ILike, Not, Repository } from 'typeorm';
 import { Student } from './student.entity';
 import { CallLog } from '../call-logs/call-log.entity';
 import { AddStudentCallLogDto } from './dto/add-student-call-log.dto';
 import { CallLogFollowup } from 'src/calllog_followups/calllog_followups.entity';
+import {
+  StudentSearchDto,
+  StudentResponseDto,
+  PaginationInfo,
+} from './dto/student-search.dto';
+import { formatTo12Hour } from 'src/call-logs/call-logs.service';
 
 @Injectable()
 export class StudentsService {
@@ -96,6 +102,7 @@ export class StudentsService {
       },
     });
   }
+
   async countStudentsByStatus(
     status: 'hold' | 'active' | 'lead' | 'reject',
   ): Promise<number> {
@@ -141,5 +148,84 @@ export class StudentsService {
     });
 
     return Math.round((convertedLeads / totalLeads) * 100);
+  }
+
+  async getStudentsWithLastContact(
+    queryParams: StudentSearchDto,
+  ): Promise<{ data: StudentResponseDto[]; pagination: PaginationInfo }> {
+    const { search, status, page = 1, limit = 10 } = queryParams;
+    const skip = (page - 1) * limit;
+
+    // Build query conditions
+    const where: any = {};
+
+    if (status) {
+      where.status = status;
+    } else {
+      where.status = Not('reject');
+    }
+
+    if (search) {
+      where.name = ILike(`%${search}%`);
+    }
+
+    const totalItems = await this.studentRepository.count({ where });
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const paginationInfo: PaginationInfo = {
+      currentPage: page,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+      totalItems,
+      itemsPerPage: limit,
+    };
+
+    // Get students with pagination
+    const students = await this.studentRepository.find({
+      where,
+      skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
+
+    // Get the last contact date for each student
+    const studentsWithLastContact: StudentResponseDto[] = await Promise.all(
+      students.map(async (student) => {
+        const lastContact = await this.getLastContactDate(student.id);
+        return {
+          ...student,
+          lastContact: formatTo12Hour(new Date(lastContact)),
+        };
+      }),
+    );
+
+    return {
+      data: studentsWithLastContact,
+      pagination: paginationInfo,
+    };
+  }
+
+  private async getLastContactDate(studentId: string): Promise<Date | null> {
+    // Find the most recent call log for this student
+    const callLog = await this.callLogRepository.findOne({
+      where: { studentId },
+      order: { call_date: 'DESC' },
+    });
+
+    if (!callLog) {
+      return null;
+    }
+
+    // Check if there's a followup for this call log
+    const followup = await this.followupRepository.findOne({
+      where: { callLog: { id: callLog.id } },
+      order: { createdAt: 'DESC' },
+    });
+
+    // Return the followup date if exists, otherwise return the call date
+    return followup ? followup.createdAt : callLog.call_date;
   }
 }

@@ -537,7 +537,7 @@ export class CallLogsService {
 }
 
 // Helper function to format date to 12-hour format with AM/PM
-function formatTo12Hour(date: Date): string {
+export function formatTo12Hour(date: Date): string {
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: '2-digit',

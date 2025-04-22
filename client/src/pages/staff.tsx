@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { Loader, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import AddStaffDialog from "@/components/staff/AddStaff";
 import {
@@ -49,8 +49,10 @@ const StaffPage = () => {
     totalItems: 0,
     itemsPerPage: 10,
   });
+  const [loading, setLoading] = useState(false);
 
   const fetchStaffList = async (page: number = 1, search?: string) => {
+    setLoading(true);
     try {
       const response = await getStaffMembers({
         page,
@@ -64,6 +66,8 @@ const StaffPage = () => {
       }
     } catch (error) {
       console.error("Error fetching staff members:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -130,6 +134,14 @@ const StaffPage = () => {
 
     return () => clearTimeout(timeoutId);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <Loader className="animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

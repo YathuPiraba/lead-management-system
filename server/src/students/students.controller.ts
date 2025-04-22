@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { AddStudentCallLogDto } from './dto/add-student-call-log.dto';
+import { StudentSearchDto } from './dto/student-search.dto';
 
 @Controller('students')
 export class StudentsController {
@@ -31,6 +32,18 @@ export class StudentsController {
     return {
       data: result,
       message: 'Student stats fetched successfully',
+      status: 200,
+      code: 'SUCCESS',
+    };
+  }
+
+  @Get('list')
+  async getStudents(@Query() queryParams: StudentSearchDto) {
+    const result =
+      await this.studentsService.getStudentsWithLastContact(queryParams);
+    return {
+      data: result,
+      message: 'Students details fetched successfully',
       status: 200,
       code: 'SUCCESS',
     };
