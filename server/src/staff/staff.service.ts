@@ -79,7 +79,7 @@ export class StaffService {
       // Step 5: Return stats with actual staff count
       return {
         totalStaff: users.length,
-        averagePerformance,
+        averagePerformance: averagePerformance ? averagePerformance : 0,
         totalLeads,
       };
     } catch {
@@ -101,11 +101,12 @@ export class StaffService {
       const queryBuilder = this.userRepository
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.role', 'role')
+        .leftJoinAndMapOne('user.staff', Staff, 'staff', 'staff.user = user.id')
         .where('role.id = :roleId', { roleId: 2 });
 
       if (search) {
         queryBuilder.andWhere(
-          '(user.firstName ILIKE :search OR user.email ILIKE :search)',
+          `(user.email ILIKE :search OR staff.firstName ILIKE :search)`,
           { search: `%${search}%` },
         );
       }
