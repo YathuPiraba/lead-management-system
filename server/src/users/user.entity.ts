@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
-  OneToMany,
 } from 'typeorm';
 import { Role } from './role.entity';
 

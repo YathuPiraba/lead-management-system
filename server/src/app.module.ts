@@ -20,6 +20,7 @@ import { StaffModule } from './staff/staff.module';
 import { LeadsModule } from './leads/leads.module';
 import { PerformanceModule } from './performance/performance.module';
 import { CalllogFollowupsModule } from './calllog_followups/calllog_followups.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -59,6 +60,7 @@ import { CalllogFollowupsModule } from './calllog_followups/calllog_followups.mo
     LeadsModule,
     PerformanceModule,
     CalllogFollowupsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
