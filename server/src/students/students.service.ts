@@ -220,12 +220,22 @@ export class StudentsService {
     }
 
     // Check if there's a followup for this call log
-    const followup = await this.followupRepository.findOne({
+    const followups = await this.followupRepository.find({
       where: { callLog: { id: callLog.id } },
-      order: { createdAt: 'DESC' },
+      order: { followup_date: 'DESC' },
     });
 
+    // Find the most recent completed followup (if any)
+    const completedFollowup = followups.find(
+      (followup) => followup.completed === true,
+    );
+
+    // Use the completed followup date if found, otherwise use the original call date
+    const call_date = completedFollowup
+      ? completedFollowup.followup_date
+      : callLog.call_date;
+
     // Return the followup date if exists, otherwise return the call date
-    return followup ? followup.createdAt : callLog.call_date;
+    return call_date;
   }
 }

@@ -118,40 +118,58 @@ export class DashboardService {
       take: 5,
     });
 
-    const formattedRecentActivity = recentActivity.map((log) => {
-      // Calculate time difference
-      const callTime = new Date(log.call_date);
-      const diffInHours = Math.round(
-        (today.getTime() - callTime.getTime()) / (1000 * 60 * 60),
-      );
+    const formattedRecentActivity = await Promise.all(
+      recentActivity.map(async (log) => {
+        // Find all followups for this call log ordered by date descending
+        const followups = await this.followupRepository.find({
+          where: { callLog: { id: log.id } },
+          order: { followup_date: 'DESC' },
+        });
 
-      let timeAgo;
-      if (diffInHours < 1) {
-        timeAgo = 'Just now';
-      } else if (diffInHours === 1) {
-        timeAgo = '1 hour ago';
-      } else if (diffInHours < 24) {
-        timeAgo = `${diffInHours} hours ago`;
-      } else {
-        const diffInDays = Math.floor(diffInHours / 24);
-        timeAgo = `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-      }
+        // Find the most recent completed followup (if any)
+        const completedFollowup = followups.find(
+          (followup) => followup.completed === true,
+        );
 
-      return {
-        leadNo: log.leadNo,
-        studentName: log.student?.name || 'Unknown',
-        action: log.notes
-          ? log.notes.length > 50
-            ? log.notes.substring(0, 50) + '...'
-            : log.notes
-          : log.repeat_followup
-            ? 'Scheduled follow-up'
-            : 'Called',
-        timeAgo,
-        userId: log.userId,
-        userName: log.user?.userName || 'Unknown',
-      };
-    });
+        // Use the completed followup date if found, otherwise use the original call date
+        const call_date = completedFollowup
+          ? completedFollowup.followup_date
+          : log.call_date;
+
+        // Calculate time difference
+        const callTime = new Date(call_date);
+        const diffInHours = Math.round(
+          (today.getTime() - callTime.getTime()) / (1000 * 60 * 60),
+        );
+
+        let timeAgo;
+        if (diffInHours < 1) {
+          timeAgo = 'Just now';
+        } else if (diffInHours === 1) {
+          timeAgo = '1 hour ago';
+        } else if (diffInHours < 24) {
+          timeAgo = `${diffInHours} hours ago`;
+        } else {
+          const diffInDays = Math.floor(diffInHours / 24);
+          timeAgo = `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+        }
+
+        return {
+          leadNo: log.leadNo,
+          studentName: log.student?.name || 'Unknown',
+          action: log.notes
+            ? log.notes.length > 50
+              ? log.notes.substring(0, 50) + '...'
+              : log.notes
+            : log.repeat_followup
+              ? 'Scheduled follow-up'
+              : 'Called',
+          timeAgo,
+          userId: log.userId,
+          userName: log.user?.userName || 'Unknown',
+        };
+      }),
+    );
 
     return {
       totalLeads: {
