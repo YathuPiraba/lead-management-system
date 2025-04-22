@@ -26,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 
 type StatsProps = {
   totalStudents: number;
@@ -138,16 +137,6 @@ const StudentsPage = () => {
 
   const handlePageChange = (newPage: number) => {
     setPagination((prev) => ({ ...prev, currentPage: newPage }));
-  };
-
-  const formatDate = (dateString: string | Date | undefined) => {
-    if (!dateString) return "N/A";
-    try {
-      return format(new Date(dateString), "MMM dd, yyyy");
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid date";
-    }
   };
 
   return (
@@ -345,7 +334,7 @@ const StudentsPage = () => {
                               student.status.slice(1)}
                           </Badge>
                         </TableCell>
-                        <TableCell>{formatDate(student.lastContact)}</TableCell>
+                        <TableCell>{student.lastContact}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="ghost" size="sm">
