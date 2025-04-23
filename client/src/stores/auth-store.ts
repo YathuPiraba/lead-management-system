@@ -8,7 +8,6 @@ import apiClient, {
 
 // Types
 interface User {
-  user: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   id: number;
   userName: string;
   image?: string;
@@ -17,6 +16,7 @@ interface User {
     name: string;
   };
   roleId: number;
+  email: string;
 }
 
 interface LoginResponse {
@@ -193,7 +193,7 @@ export const useAuthStore = create<AuthState>()(
       fetchUserDetails: async () => {
         set({ isLoading: true });
         try {
-          const res = await handleApiResponse<User>(
+          const res = await handleApiResponse<any>(
             apiClient.get("/users/user-details")
           );
 
