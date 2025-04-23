@@ -45,6 +45,7 @@ export interface CallLogResponse {
   phone: string;
   date: string;
   status: string;
+  studentStatus: string;
   notes: string;
   leadNo: string;
   followupCount: number;
