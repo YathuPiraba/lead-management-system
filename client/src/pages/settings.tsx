@@ -131,7 +131,7 @@ const SettingsPage = () => {
     setCrop(centerAspectCrop(width, height, 1));
   }
 
-  const deleteImage = () => {
+  const deleteImage = async () => {
     try {
       // await deleteProfileAPI(user.userId);
       setIsEditingImage(false);
