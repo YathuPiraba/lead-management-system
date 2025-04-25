@@ -20,6 +20,7 @@ const nextConfig = {
   poweredByHeader: false,
 
   images: {
+    domains: ["res.cloudinary.com"],
     remotePatterns: [
       {
         protocol: "https",
@@ -29,6 +30,7 @@ const nextConfig = {
     ],
     // Minimize image information exposure
     minimumCacheTTL: 60,
+    unoptimized: true,
   },
 
   // Add security headers
