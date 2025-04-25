@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, Loader } from "lucide-react";
+import { Loader } from "lucide-react";
 import {
   CallLogResponse,
   getCallLogsWithFollowups,
@@ -19,6 +19,7 @@ import { PaginationInfo } from "@/lib/call-logs.api";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
 import FilterPopover from "@/components/Table/FilterPopover";
+import ActionPopover from "@/components/follow-ups/ActionPopover";
 
 interface FollowupStats {
   dueToday: number;
@@ -43,6 +44,7 @@ const FollowupsPage = () => {
     leadNo: false,
   });
   const [loading, setLoading] = useState(true);
+  // const [modalOpen, setModalOpen] = useState(false);
   const [followups, setFollowups] = useState<CallLogResponse[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
@@ -134,6 +136,96 @@ const FollowupsPage = () => {
       </div>
     );
   }
+
+  const handleStatusChange = (followupId: string, status: string) => {
+    setFollowups((prevFollowups) =>
+      prevFollowups.map((followup) =>
+        followup.id === followupId
+          ? { ...followup, studentStatus: status }
+          : followup
+      )
+    );
+
+    // If you need to save to API
+    saveStatusToApi(followupId, status);
+  };
+
+  // Handler for date change
+  const handleDateChange = (followupId: string, date: Date) => {
+    const formattedDate = date.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+
+    setFollowups((prevFollowups) =>
+      prevFollowups.map((followup) =>
+        followup.id === followupId
+          ? { ...followup, followupDate: formattedDate }
+          : followup
+      )
+    );
+
+    // If you need to save to API
+    saveDateToApi(followupId, date);
+  };
+
+  // Handler for staff assignment
+  const handleStaffAssign = () => {
+    // followupId: string, staffId: string
+    // setFollowups((prevFollowups) =>
+    //   prevFollowups.map((followup) => {
+    //     if (followup.id === followupId) {
+    //       // Create a new followup entry or update the existing one
+    //       const updatedFollowups = followup.followups
+    //         ? followup.followups.map((f, index) =>
+    //             index === followup.followups!.length - 1
+    //               ? { ...f, assignedStaff: { id: staffId, name: getStaffName(staffId) } }
+    //               : f
+    //           )
+    //         : [{
+    //             id: generateUniqueId(),
+    //             completed: false,
+    //             assignedStaff: { id: staffId, name: getStaffName(staffId) }
+    //           }];
+    //       return { ...followup, followups: updatedFollowups };
+    //     }
+    //     return followup;
+    //   })
+  };
+
+  // If you need to save to API
+  //   saveStaffAssignmentToApi(followupId, staffId);
+  // };
+
+  // API functions (replace with your actual API calls)
+  const saveStatusToApi = async (followupId: string, status: string) => {
+    try {
+      // Example API call
+      // await api.post(`/followups/${followupId}/status`, { status });
+      console.log(`Status ${status} saved for followup ${followupId}`);
+    } catch (error) {
+      console.error("Error saving status:", error);
+    }
+  };
+
+  const saveDateToApi = async (followupId: string, date: Date) => {
+    try {
+      // Example API call
+      // await api.post(`/followups/${followupId}/date`, { date: date.toISOString() });
+      console.log(
+        `Date ${date.toISOString()} saved for followup ${followupId}`
+      );
+    } catch (error) {
+      console.error("Error saving date:", error);
+    }
+  };
+
+  // const saveStaffAssignmentToApi = async (followupId: string, staffId: string) => {
+  //   try {
+  //     // Example API call
+  //     // await api.post(`/followups/${followupId}/staff`, { staffId });
+  //     console.log(`Staff ${staffId} assigned to followup ${followupId}`);
+  //   } catch (error) {
+  //     console.error("Error assigning staff:", error);
+  //   }
+  // };
 
   return (
     <div className="p-6 space-y-6">
@@ -261,14 +353,25 @@ const FollowupsPage = () => {
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          followup.status === "open"
+                          followup.studentStatus === "hold"
+                            ? "bg-yellow-200 text-yellow-800"
+                            : followup.studentStatus === "reject"
+                            ? "bg-red-200 text-red-800"
+                            : followup.status === "open"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-green-100 text-green-800"
                         }`}
                       >
-                        {followup.status === "open" ? "Open" : "Closed"}
+                        {followup.studentStatus === "hold"
+                          ? "Hold"
+                          : followup.studentStatus === "reject"
+                          ? "Rejected"
+                          : followup.status === "open"
+                          ? "Open"
+                          : "Closed"}
                       </span>
                     </TableCell>
+
                     <TableCell>
                       {followup.followups && followup.followups.length > 0 ? (
                         followup.followups.map((followupItem, index) => (
@@ -296,9 +399,16 @@ const FollowupsPage = () => {
                         : "N/A"}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <Calendar className="h-4 w-4" />
-                      </Button>
+                      <ActionPopover
+                        followup={followup}
+                        onStatusChange={(status) =>
+                          handleStatusChange(followup.id, status)
+                        }
+                        onDateChange={(date) =>
+                          handleDateChange(followup.id, date)
+                        }
+                        onStaffAssign={() => handleStaffAssign()}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

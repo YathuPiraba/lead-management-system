@@ -96,7 +96,9 @@ export class UsersController {
     if (accessToken && refreshToken) {
       res.cookie(cookieName, refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV.trim() === 'production',
+        secure:
+          this.configService.get('SECURE') ||
+          process.env.NODE_ENV.trim() === 'production',
         sameSite: this.configService.get('SAME_SITE') || 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
@@ -200,9 +202,11 @@ export class UsersController {
         const { accessToken, refreshToken } =
           await this.usersService.generateNewTokens(userId);
 
-        res.cookie('refreshToken', refreshToken, {
+        res.cookie(cookieName, refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure:
+            this.configService.get('SECURE') ||
+            process.env.NODE_ENV === 'production',
           sameSite: this.configService.get('SAME_SITE') || 'none',
           maxAge: 7 * 24 * 60 * 60 * 1000,
           path: '/',

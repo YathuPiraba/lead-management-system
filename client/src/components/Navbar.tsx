@@ -60,9 +60,9 @@ const Navbar = () => {
         {/* Navigation Items */}
         <div className="flex items-center space-x-6">
           {/* Notification Button */}
-          <Button className="relative bg-white rounded-full h-12 w-12 p-3 shadow-md">
+          <Button className="relative bg-white hover:bg-gray-50 rounded-full h-12 w-12 p-3 shadow-md">
             <Bell
-              className=" text-gray-600"
+              className=" text-gray-500"
               style={{
                 width: "18px",
                 height: "18px",
@@ -76,7 +76,7 @@ const Navbar = () => {
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="rounded-full p-2 h-12 w-12 bg-white shadow-md">
+              <Button className="rounded-full p-2 h-12 w-12 bg-white  hover:bg-gray-50 shadow-md">
                 <Avatar className="h-12 w-12">
                   {user?.image ? (
                     <AvatarImage
@@ -84,7 +84,7 @@ const Navbar = () => {
                       alt={user.userName || "Profile"}
                     />
                   ) : (
-                    <AvatarFallback className="text-black hover:border-black">
+                    <AvatarFallback className="text-black bg-white hover:bg-gray-50 ">
                       {user?.userName?.charAt(0) || "U"}
                     </AvatarFallback>
                   )}
@@ -94,7 +94,7 @@ const Navbar = () => {
             <DropdownMenuContent align="end" className="w-32 mt-0 mr-4">
               <Link href="/settings">
                 <DropdownMenuItem className="flex items-center cursor-pointer p-1">
-                  <Button className={`bg-gray-100 text-black hover:bg-gray-50`}>
+                  <Button className={`bg-white text-black hover:bg-gray-50`}>
                     <User className="mr-2 h-4 w-4 " />
                     Profile
                   </Button>
@@ -103,7 +103,7 @@ const Navbar = () => {
               <DropdownMenuItem className="flex items-center text-red-600 cursor-pointer p-1">
                 <Button
                   onClick={handleLogout}
-                  className={`bg-gray-100 text-black hover:bg-gray-50`}
+                  className={`bg-white text-black hover:bg-gray-50`}
                 >
                   <LogOut className="mr-2 h-4 w-3" />
                   Logout

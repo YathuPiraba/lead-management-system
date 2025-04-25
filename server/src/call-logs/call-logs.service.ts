@@ -249,6 +249,7 @@ export class CallLogsService {
           id: log.id,
           studentName: log.student?.name || 'N/A',
           phone: log.student?.phone_number || 'N/A',
+          studentStatus: log.student?.status || 'N/A',
           date: formatTo12Hour(log.call_date),
           status: log.status,
           notes: log.notes,
