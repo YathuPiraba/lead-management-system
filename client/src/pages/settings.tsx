@@ -16,9 +16,10 @@ import ReactCrop, { centerCrop, Crop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "@/stores/auth-store";
 import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
+import { deleteImageAPI, updateUserAPI } from "@/lib/apiServices";
 
 const SettingsPage = () => {
-  const { user } = useAuth();
+  const { user, fetchUserDetails } = useAuth();
   const [username, setUsername] = useState<string>(
     user?.userName || "admin_user"
   );
@@ -41,7 +42,7 @@ const SettingsPage = () => {
   const [imageLoading, setImageLoading] = useState(false);
   const { showModal, ChangePasswordModal } = useChangePasswordModal();
 
-  console.log(user);
+  console.log(user?.id);
 
   function centerAspectCrop(
     mediaWidth: number,
@@ -102,9 +103,10 @@ const SettingsPage = () => {
       setImageLoading(true);
 
       try {
-        // await updateAdminDetailsApi(user.userId, formData);
+        if (user) await updateUserAPI(user.id, formData);
         setIsEditingImage(false);
         setShowSuccess(true);
+        fetchUserDetails();
         setTimeout(() => setShowSuccess(false), 3000);
       } catch (error) {
         console.error("Error uploading image:", error);
@@ -138,8 +140,9 @@ const SettingsPage = () => {
 
   const deleteImage = async () => {
     try {
-      // await deleteProfileAPI(user.userId);
+      if (user) await deleteImageAPI(user.id);
       setIsEditingImage(false);
+      fetchUserDetails();
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
@@ -147,11 +150,21 @@ const SettingsPage = () => {
     }
   };
 
-  const updateDetails = (e: FormEvent<HTMLFormElement>) => {
+  const updateDetails = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsDetailsOpen(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+
+    const formData = new FormData();
+    formData.append("userName", username);
+    formData.append("email", email);
+    try {
+      if (user) await updateUserAPI(user.id, formData);
+      fetchUserDetails();
+      setIsDetailsOpen(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error updating user details:", error);
+    }
   };
 
   return (
@@ -201,6 +214,7 @@ const SettingsPage = () => {
               variant="destructive"
               onClick={deleteImage}
               className="w-full"
+              disabled={user?.image === null || user?.image === undefined}
             >
               <Trash className="mr-2 h-4 w-4" />
               Delete Image

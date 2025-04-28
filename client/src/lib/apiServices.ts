@@ -27,28 +27,26 @@ export const registerStaff = async (userData: FormData) => {
 };
 
 // Update user data
-export const updateUser = async (
-  userId: string,
-  updatedData: { name?: string; email?: string }
-) => {
+export const updateUserAPI = async (userId: number, userData: FormData) => {
   try {
     const response = await apiClient.put<ApiResponse<{ user: string }>>(
-      `/users/${userId}`,
-      updatedData
+      `/users/update_user/${userId}`,
+      userData
     );
-    return response.data.data;
+    return response.data;
   } catch (error) {
-    console.error(error); // Re-throw error for further handling by the caller
+    console.error(error);
+    throw error;
   }
 };
 
 // Delete a user
-export const deleteImage = async (userId: string) => {
+export const deleteImageAPI = async (userId: number) => {
   try {
-    await apiClient.delete(`/users/delete-image/${userId}`);
-    return true; // Return true if the deletion was successful
+    const res = await apiClient.delete(`/users/delete-image/${userId}`);
+    return res;
   } catch (error) {
-    console.error(error); // Re-throw error for further handling by the caller
+    console.error(error);
   }
 };
 
