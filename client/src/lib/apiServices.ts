@@ -43,9 +43,9 @@ export const updateUser = async (
 };
 
 // Delete a user
-export const deleteUser = async (userId: string) => {
+export const deleteImage = async (userId: string) => {
   try {
-    await apiClient.delete(`/users/${userId}`);
+    await apiClient.delete(`/users/delete-image/${userId}`);
     return true; // Return true if the deletion was successful
   } catch (error) {
     console.error(error); // Re-throw error for further handling by the caller

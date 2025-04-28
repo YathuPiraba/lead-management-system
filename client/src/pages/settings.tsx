@@ -15,10 +15,16 @@ import Image from "next/image";
 import ReactCrop, { centerCrop, Crop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "@/stores/auth-store";
+import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
 
 const SettingsPage = () => {
-  const [username, setUsername] = useState<string>("admin_user");
-  const [email, setEmail] = useState<string>("admin@example.com");
+  const { user } = useAuth();
+  const [username, setUsername] = useState<string>(
+    user?.userName || "admin_user"
+  );
+  const [email, setEmail] = useState<string>(
+    user?.email || "admin@example.com"
+  );
   const [isEditingImage, setIsEditingImage] = useState<boolean>(false);
   const [crop, setCrop] = useState<Crop>({
     unit: "%",
@@ -29,12 +35,11 @@ const SettingsPage = () => {
   });
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isPasswordOpen, setIsPasswordOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
-  const { user } = useAuth();
+  const { showModal, ChangePasswordModal } = useChangePasswordModal();
 
   console.log(user);
 
@@ -145,13 +150,6 @@ const SettingsPage = () => {
   const updateDetails = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsDetailsOpen(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  };
-
-  const updatePassword = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsPasswordOpen(false);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -326,45 +324,16 @@ const SettingsPage = () => {
                 </DialogContent>
               </Dialog>
 
-              <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline">Change Password</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Change Password</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={updatePassword} className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current-password">Current Password</Label>
-                      <Input id="current-password" type="password" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <Input id="new-password" type="password" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm Password</Label>
-                      <Input id="confirm-password" type="password" />
-                    </div>
-                    <div className="flex justify-end gap-2 pt-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsPasswordOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="submit">Update Password</Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <Button variant="outline" onClick={() => showModal()}>
+                Change Password
+              </Button>
             </div>
+            <ChangePasswordModal />
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default SettingsPage;
