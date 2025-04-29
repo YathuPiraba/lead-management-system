@@ -21,9 +21,10 @@ const Pagination: React.FC<PaginationProps> = ({
   hasPreviousPage,
   onPageChange,
 }) => {
-  const startEntry = (currentPage - 1) * itemsPerPage + 1;
-  const endEntry = Math.min(currentPage * itemsPerPage, totalItems);
-
+  const startEntry =
+    totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const endEntry =
+    totalItems === 0 ? 0 : Math.min(currentPage * itemsPerPage, totalItems);
   return (
     <div className="flex items-center justify-between px-4 py-4 border-t">
       <div className="text-sm text-gray-500">
