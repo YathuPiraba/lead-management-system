@@ -29,7 +29,7 @@ export const registerStaff = async (userData: FormData) => {
 // Update user data
 export const updateUserAPI = async (userId: number, userData: FormData) => {
   try {
-    const response = await apiClient.put<ApiResponse<{ user: string }>>(
+    const response = await apiClient.put<ApiResponse>(
       `/users/update_user/${userId}`,
       userData
     );

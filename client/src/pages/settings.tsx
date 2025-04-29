@@ -1,5 +1,5 @@
 import React, { useState, useRef, FormEvent } from "react";
-import { Camera, Save, Trash, X, Check, Loader } from "lucide-react";
+import { Camera, Save, Trash, X, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,13 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import ReactCrop, { centerCrop, Crop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "@/stores/auth-store";
 import { useChangePasswordModal } from "@/hooks/ChangePasswordModal";
 import { deleteImageAPI, updateUserAPI } from "@/lib/apiServices";
+import toast from "react-hot-toast";
 
 const SettingsPage = () => {
   const { user, fetchUserDetails } = useAuth();
@@ -37,12 +37,10 @@ const SettingsPage = () => {
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
-  const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [imgSrc, setImgSrc] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const { showModal, ChangePasswordModal } = useChangePasswordModal();
-
-  console.log(user?.id);
+  const [loading, setLoading] = useState(false);
 
   function centerAspectCrop(
     mediaWidth: number,
@@ -103,11 +101,12 @@ const SettingsPage = () => {
       setImageLoading(true);
 
       try {
-        if (user) await updateUserAPI(user.id, formData);
-        setIsEditingImage(false);
-        setShowSuccess(true);
-        fetchUserDetails();
-        setTimeout(() => setShowSuccess(false), 3000);
+        if (user) {
+          await updateUserAPI(user.id, formData);
+          setIsEditingImage(false);
+          toast.success("Profile Updated successfully.");
+          fetchUserDetails();
+        }
       } catch (error) {
         console.error("Error uploading image:", error);
       } finally {
@@ -143,8 +142,7 @@ const SettingsPage = () => {
       if (user) await deleteImageAPI(user.id);
       setIsEditingImage(false);
       fetchUserDetails();
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      toast.success("Profile picture deleted successfully.");
     } catch (error) {
       console.error("Error deleting profile picture:", error);
     }
@@ -152,34 +150,29 @@ const SettingsPage = () => {
 
   const updateDetails = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setLoading(true);
     const formData = new FormData();
     formData.append("userName", username);
     formData.append("email", email);
     try {
-      if (user) await updateUserAPI(user.id, formData);
-      fetchUserDetails();
-      setIsDetailsOpen(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      if (user) {
+        const response = await updateUserAPI(user.id, formData);
+        fetchUserDetails();
+        setIsDetailsOpen(false);
+        toast.success(
+          response.message || "Profile details updated successfully."
+        );
+      }
     } catch (error) {
       console.error("Error updating user details:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="max-w-4xl mt-16 mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
-
-      {showSuccess && (
-        <Alert className="mb-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900">
-          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-          <AlertDescription className="text-green-600 dark:text-green-400">
-            Changes saved successfully
-          </AlertDescription>
-        </Alert>
-      )}
-
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex flex-col items-center">
           <div className="relative">
@@ -332,7 +325,18 @@ const SettingsPage = () => {
                       >
                         Cancel
                       </Button>
-                      <Button type="submit">Save Changes</Button>
+                      <Button type="submit">
+                        {loading ? (
+                          <span className="flex items-center gap-2">
+                            Saving...
+                            <Loader className="h-6 w-6 animate-spin" />
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <Save className="mr-2 h-4 w-4" /> Save Changes
+                          </span>
+                        )}
+                      </Button>
                     </div>
                   </form>
                 </DialogContent>
