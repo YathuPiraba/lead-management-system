@@ -43,7 +43,7 @@ package-lock.json
 .env.test.local
 .env.production.local
 .env.local
-.env.development
+# .env.development
 .env.production
 
 .yarn

@@ -1,78 +1,51 @@
-import { Module } from '@nestjs/common';
+import { Module, DynamicModule, Global, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RedisModule, RedisModuleOptions } from '@nestjs-modules/ioredis';
-import { Logger } from '@nestjs/common';
-import IORedis from 'ioredis';
+import Redis from 'ioredis';
+import { REDIS_CLIENT } from './constants/redis.constants';
 import { RedisService } from './redis.service';
 
-@Module({
-  imports: [
-    RedisModule.forRootAsync({
+@Global()
+@Module({})
+export class RedisModule {
+  static forRoot(): DynamicModule {
+    return {
+      module: RedisModule,
       imports: [ConfigModule],
-      useFactory: async (
-        configService: ConfigService,
-      ): Promise<RedisModuleOptions> => {
-        const logger = new Logger('RedisModule');
+      providers: [
+        {
+          provide: REDIS_CLIENT,
+          useFactory: (configService: ConfigService) => {
+            const logger = new Logger('RedisClient');
+            const client = new Redis({
+              host: configService.get('redis.host'),
+              port: configService.get('redis.port'),
+              password: configService.get('redis.password') || undefined,
+              retryStrategy: (times) => {
+                const delay = Math.min(times * 1000, 10000);
+                logger.warn(`Retrying Redis connection (attempt ${times})...`);
+                return delay;
+              },
+            });
 
-        // Create Redis client configuration
-        const config: RedisModuleOptions = {
-          type: 'single', // Single Redis instance
-          options: {
-            host: configService.get<string>('REDIS_HOST'),
-            port: configService.get<number>('REDIS_PORT'),
-            password: configService.get<string>('REDIS_PASSWORD'),
+            client.on('connect', () => logger.log('Redis CLIENT connected'));
+            client.on('ready', () => logger.log('Redis CLIENT ready'));
+            client.on('error', (err) =>
+              logger.error(`Redis CLIENT error: ${err.message}`),
+            );
+            client.on('close', () =>
+              logger.warn('Redis CLIENT connection closed'),
+            );
+            client.on('reconnecting', () =>
+              logger.warn('Redis CLIENT reconnecting...'),
+            );
 
-            retryStrategy(times: number) {
-              const delay = Math.min(times * 1000, 20000);
-              logger.warn(
-                `Attempting to reconnect to Redis... (Attempt ${times})`,
-              );
-              return delay;
-            },
-
-            connectTimeout: 10000,
-            maxRetriesPerRequest: 3,
-            enableOfflineQueue: true,
-            keepAlive: 30000,
-            enableReadyCheck: true,
-            lazyConnect: true,
-            connectionName: 'app-redis-connection',
+            return client;
           },
-        };
-
-        // Create a Redis client to attach event listeners
-        const client = new IORedis({
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          password: configService.get<string>('REDIS_PASSWORD'),
-        });
-
-        client.on('connect', () => {
-          logger.log('Successfully connected to Redis');
-        });
-
-        client.on('error', (err) => {
-          logger.error(`Redis connection error: ${err.message}`);
-        });
-
-        client.on('ready', () => {
-          logger.log('Redis client is ready');
-        });
-
-        client.on('close', () => {
-          logger.warn('Redis connection closed');
-        });
-
-        client.on('reconnecting', () => {
-          logger.warn('Redis client reconnecting');
-        });
-
-        return config;
-      },
-      inject: [ConfigService],
-    }),
-  ],
-  providers: [RedisService],
-  exports: [RedisModule, RedisService],
-})
-export class EnhancedRedisModule {}
+          inject: [ConfigService],
+        },
+        RedisService,
+      ],
+      exports: [RedisService, REDIS_CLIENT],
+    };
+  }
+}
