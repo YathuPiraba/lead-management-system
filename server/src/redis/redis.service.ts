@@ -9,7 +9,43 @@ export class RedisService implements OnModuleDestroy {
   constructor(
     @Inject(REDIS_CLIENT) private readonly redisClient: RedisClient,
   ) {}
-  onModuleDestroy() {
-    throw new Error('Method not implemented.');
+
+  async set(
+    key: string,
+    value: string,
+    ttlSeconds?: number,
+  ): Promise<'OK' | null> {
+    try {
+      if (ttlSeconds) {
+        return await this.redisClient.set(key, value, 'EX', ttlSeconds);
+      }
+      return await this.redisClient.set(key, value);
+    } catch (error) {
+      this.logger.error(`Error setting key "${key}": ${error.message}`);
+      return null;
+    }
+  }
+
+  async get(key: string): Promise<string | null> {
+    try {
+      return await this.redisClient.get(key);
+    } catch (error) {
+      this.logger.error(`Error getting key "${key}": ${error.message}`);
+      return null;
+    }
+  }
+
+  async delete(key: string): Promise<number> {
+    try {
+      return await this.redisClient.del(key);
+    } catch (error) {
+      this.logger.error(`Error deleting key "${key}": ${error.message}`);
+      return 0;
+    }
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    this.logger.warn('Closing Redis connection...');
+    await this.redisClient.quit();
   }
 }
