@@ -9,6 +9,14 @@ import { appConfig } from './config/app.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { mailConfig } from './config/mail.config';
 import { RedisModule } from './redis/redis.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { OrganizationModule } from './modules/organization/organization.module';
+import { StaffModule } from './modules/staff/staff.module';
+import { SubscriptionModule } from './modules/subscriptions/subscription.module';
+import { ActivityModule } from './modules/activity-logs/activity.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -28,6 +36,15 @@ import { RedisModule } from './redis/redis.module';
       inject: [ConfigService],
     }),
     RedisModule.forRoot(),
+    ScheduleModule.forRoot(),
+
+    AuthModule,
+    ContactsModule,
+    NotificationModule,
+    OrganizationModule,
+    StaffModule,
+    SubscriptionModule,
+    ActivityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
