@@ -15,11 +15,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const logFormat =
+    process.env.NODE_ENV?.trim() === 'production' ? 'combined' : 'dev';
 
   // Middleware
   app.use(cookieParser());
   app.use(helmet());
-  app.use(morgan('dev'));
+  app.use(morgan(logFormat));
   app.use(
     cors({
       origin: true,
