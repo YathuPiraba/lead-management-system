@@ -19,6 +19,7 @@ import { ActivityModule } from './modules/activity-logs/activity.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -56,6 +57,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     StaffModule,
     SubscriptionModule,
     ActivityModule,
+    UserModule,
+    ScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
