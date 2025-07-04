@@ -22,7 +22,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './modules/user/user.module';
 import { ProductAdminSeeder } from './database/seeders/initial-data.seed';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -76,7 +76,7 @@ import { JwtModule } from '@nestjs/jwt';
     ScheduleModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ProductAdminSeeder],
+  providers: [AppService, ProductAdminSeeder, JwtService],
 })
 export class AppModule implements OnApplicationBootstrap {
   constructor(private readonly seeder: ProductAdminSeeder) {}
