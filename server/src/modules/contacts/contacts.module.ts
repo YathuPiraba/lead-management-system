@@ -14,6 +14,6 @@ import { FollowupController } from './controllers/followups.controller';
   imports: [TypeOrmModule.forFeature([CallLog, CallLogFollowup, Contact])],
   providers: [ContactService, CallLogService, FollowupService],
   controllers: [ContactController, CallLogController, FollowupController],
-  exports: [TypeOrmModule],
+  exports: [ContactService, FollowupService, CallLogService],
 })
 export class ContactsModule {}

@@ -10,6 +10,6 @@ import { StaffController } from './staff.controller';
   imports: [TypeOrmModule.forFeature([Staff, StaffPerformance])],
   providers: [StaffService, PerformanceService],
   controllers: [StaffController],
-  exports: [TypeOrmModule],
+  exports: [StaffService, PerformanceService],
 })
 export class StaffModule {}

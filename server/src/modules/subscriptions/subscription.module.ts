@@ -20,6 +20,6 @@ import { SubscriptionController } from './controller/subscription.controller';
   ],
   providers: [SubscriptionService],
   controllers: [SubscriptionController],
-  exports: [TypeOrmModule],
+  exports: [SubscriptionService],
 })
 export class SubscriptionModule {}
