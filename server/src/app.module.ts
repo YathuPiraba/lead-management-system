@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -20,6 +20,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './modules/user/user.module';
+import { ProductAdminSeeder } from './database/seeders/initial-data.seed';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -48,6 +51,18 @@ import { UserModule } from './modules/user/user.module';
         },
       ],
     }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('jwt.secret'),
+        signOptions: {
+          expiresIn: configService.get<string>('jwt.expiresIn', '1d'),
+        },
+      }),
+    }),
+
     CloudinaryModule,
 
     AuthModule,
@@ -61,6 +76,18 @@ import { UserModule } from './modules/user/user.module';
     ScheduleModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ProductAdminSeeder],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  constructor(private readonly seeder: ProductAdminSeeder) {}
+
+  async onApplicationBootstrap() {
+    try {
+      await this.seeder.seed();
+      console.log('Database seeding completed successfully');
+    } catch (error) {
+      console.error('Error during database initialization:', error);
+      throw error;
+    }
+  }
+}
