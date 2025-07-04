@@ -15,26 +15,7 @@ import { PaginationInfo } from "@/lib/call-logs.api";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
 import FilterPopover from "@/components/Table/FilterPopover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import RescheduleModal from "../components/follow-ups/RescheduleModal";
 
 const MissedFollowup = () => {
   const [filters, setFilters] = useState({
@@ -62,10 +43,6 @@ const MissedFollowup = () => {
     itemsPerPage: 10,
   });
   const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false);
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
   const [selectedFollowup, setSelectedFollowup] =
     useState<ExpiredResponse | null>(null);
 
@@ -126,17 +103,7 @@ const MissedFollowup = () => {
     setRescheduleModalOpen(true);
   };
 
-  const handleConfirmMove = () => {
-    setRescheduleModalOpen(false);
-    setConfirmDialogOpen(true);
-  };
-
-  const handleFinalConfirm = async () => {
-    // Here you would implement the API call to reschedule the followup
-    // Example: await rescheduleFollowup(selectedFollowup.id, selectedDate);
-    console.log("Moving followup", selectedFollowup?.id, "to", selectedDate);
-    setConfirmDialogOpen(false);
-    setSelectedDate(new Date());
+  const handleRescheduleSuccess = async () => {
     // Refresh the data after successful rescheduling
     fetchExpiredFollowups(pagination.currentPage);
   };
@@ -277,73 +244,13 @@ const MissedFollowup = () => {
         </CardContent>
       </Card>
 
-      {/* Reschedule Modal */}
-      <Dialog
+      {/* Reschedule Modal as separate component */}
+      <RescheduleModal
         open={rescheduleModalOpen}
-        onOpenChange={(open) => {
-          setRescheduleModalOpen(open);
-          if (!open) {
-            setSelectedDate(new Date());
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Reschedule Follow-up</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="flex flex-col gap-2">
-              <div className="grid gap-2">
-                <Label htmlFor="reschedule-date">
-                  Select a new date for this follow-up:
-                </Label>
-                <Input
-                  id="reschedule-date"
-                  type="date"
-                  min={format(new Date(), "yyyy-MM-dd")}
-                  value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
-                  onChange={(e) => {
-                    const date = e.target.value
-                      ? new Date(e.target.value)
-                      : undefined;
-                    setSelectedDate(date);
-                  }}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRescheduleModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmMove}>Move</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Confirmation Dialog */}
-      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will move this follow-up to{" "}
-              {selectedDate && format(selectedDate, "MMM dd, yyyy")}. This
-              action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
-            <AlertDialogAction onClick={handleFinalConfirm}>
-              Yes
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onOpenChange={setRescheduleModalOpen}
+        followup={selectedFollowup}
+        onSuccess={handleRescheduleSuccess}
+      />
     </div>
   );
 };

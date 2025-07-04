@@ -133,7 +133,7 @@ export class UsersController {
     // Remove the refresh token from cookies
     res.clearCookie(cookieName, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV?.trim() === 'production',
       sameSite: this.configService.get('SAME_SITE') || 'none',
       path: '/',
       domain: this.configService.get('COOKIE_DOMAIN') || undefined,
