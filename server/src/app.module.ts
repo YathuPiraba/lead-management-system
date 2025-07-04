@@ -17,6 +17,7 @@ import { StaffModule } from './modules/staff/staff.module';
 import { SubscriptionModule } from './modules/subscriptions/subscription.module';
 import { ActivityModule } from './modules/activity-logs/activity.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -37,6 +38,14 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     RedisModule.forRoot(),
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60, // Time to live (seconds)
+          limit: 10, // Max 10 requests per minute per IP
+        },
+      ],
+    }),
 
     AuthModule,
     ContactsModule,
