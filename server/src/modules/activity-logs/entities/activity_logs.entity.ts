@@ -1,4 +1,4 @@
-import { User } from '../../auth/entities/users.entity';
+import { User } from '../../user/entities/users.entity';
 import { Organization } from '../../organization/entities/organizations.entity';
 import {
   Column,

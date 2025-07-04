@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Contact } from './contacts.entity';
-import { User } from '../../auth/entities/users.entity';
+import { User } from '../../user/entities/users.entity';
 import { CallLogFollowup } from './call_log_followups.entity';
 
 @Entity('call_logs')
