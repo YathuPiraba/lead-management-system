@@ -2,6 +2,7 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -11,6 +12,7 @@ import { Role } from './roles.entity';
 import { ActivityLog } from '../../activity-logs/entities/activity_logs.entity';
 import { Staff } from '../../staff/entities/staff.entity';
 import { CallLog } from '../../contacts/entities/call_logs.entity';
+import { Organization } from '../../organization/entities/organizations.entity';
 
 @Entity('users')
 export class User {
@@ -28,6 +30,9 @@ export class User {
 
   @Column({ unique: true })
   email: string;
+
+  @Column({ name: 'org_id', nullable: true })
+  orgId: number;
 
   @Column({ nullable: true })
   passwordResetToken: string;
@@ -52,6 +57,12 @@ export class User {
 
   @ManyToOne(() => Role, (role) => role.users)
   role: Role;
+
+  @ManyToOne(() => Organization, (organization) => organization.members, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'org_id' })
+  organization: Organization;
 
   @OneToMany(() => ActivityLog, (log) => log.user)
   activityLogs: ActivityLog[];

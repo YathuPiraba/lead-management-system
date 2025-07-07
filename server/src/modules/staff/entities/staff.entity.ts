@@ -21,9 +21,6 @@ export class Staff {
   @JoinColumn()
   user: User;
 
-  @ManyToOne(() => Organization)
-  organization: Organization;
-
   @Column()
   name: string;
 

@@ -12,6 +12,7 @@ import { License } from '../../subscriptions/entities/licenses.entity';
 import { ActivityLog } from '../../activity-logs/entities/activity_logs.entity';
 import { Staff } from '../../staff/entities/staff.entity';
 import { Contact } from '../../contacts/entities/contacts.entity';
+import { User } from 'src/modules/user/entities/users.entity';
 
 @Entity('organizations')
 export class Organization {
@@ -54,8 +55,8 @@ export class Organization {
   @OneToMany(() => ActivityLog, (log) => log.organization)
   activityLogs: ActivityLog[];
 
-  @OneToMany(() => Staff, (staff) => staff.organization)
-  staffMembers: Staff[];
+  @OneToMany(() => User, (member) => member.organization)
+  members: User[];
 
   @OneToMany(() => Contact, (contact) => contact.organization)
   contacts: Contact[];
