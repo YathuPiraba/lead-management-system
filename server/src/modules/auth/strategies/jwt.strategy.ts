@@ -47,24 +47,29 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     orgId?: number;
     type: UserType;
   }): Promise<User> {
-    if (payload.type === 'product_admin') {
-      const user = await this.userRepository.findOne({
-        where: { id: String(payload.userId) },
-        relations: ['role'],
-      });
+    let relations: string[] = [];
 
-      if (!user) throw new UnauthorizedException(USER_NOT_FOUND);
-      return user;
-    } else if (payload.type === 'org_admin' || payload.type === 'org_staff') {
-      const user = await this.userRepository.findOne({
-        where: { id: String(payload.userId) },
-        relations: ['role', 'organization'],
-      });
-
-      if (!user) throw new UnauthorizedException(USER_NOT_FOUND);
-      return user;
+    switch (payload.type) {
+      case 'product_admin':
+        relations = ['role'];
+        break;
+      case 'org_admin':
+      case 'org_staff':
+        relations = ['role', 'organization'];
+        break;
+      default:
+        throw new UnauthorizedException('Invalid user type in token.');
     }
 
-    throw new UnauthorizedException('Invalid user type in token.');
+    const user = await this.userRepository.findOne({
+      where: { id: String(payload.userId) },
+      relations,
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(USER_NOT_FOUND);
+    }
+
+    return user;
   }
 }
