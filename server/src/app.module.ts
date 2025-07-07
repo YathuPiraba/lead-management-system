@@ -23,6 +23,8 @@ import { UserModule } from './modules/user/user.module';
 import { ProductAdminSeeder } from './database/seeders/initial-data.seed';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -76,7 +78,15 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
     ScheduleModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ProductAdminSeeder, JwtService],
+  providers: [
+    AppService,
+    ProductAdminSeeder,
+    JwtService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule implements OnApplicationBootstrap {
   constructor(private readonly seeder: ProductAdminSeeder) {}
