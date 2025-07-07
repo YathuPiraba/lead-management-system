@@ -1,17 +1,9 @@
-export type UserType = 'product_admin' | 'org_admin' | 'org_staff';
+import { UserInterface } from '../../modules/auth/interfaces/user.interface';
 
-export interface UserInterface {
-  type: UserType;
-  userId: number;
-  username: string;
-  email: string;
-  roleId: number;
-  orgId?: number;
-}
 declare global {
   namespace Express {
     interface Request {
-      user: User;
+      user: UserInterface;
     }
   }
 }

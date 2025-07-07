@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { USER_NOT_FOUND } from '../../../common/constants/error.constants';
 import { User } from '../../user/entities/users.entity';
-import { UserInterface } from '../../../common/types/express';
+import { UserInterface } from '../interfaces/user.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
