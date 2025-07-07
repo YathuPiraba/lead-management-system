@@ -25,6 +25,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     }),
 
     CloudinaryModule,
+    MailModule,
 
     AuthModule,
     ContactsModule,
