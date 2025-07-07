@@ -25,7 +25,7 @@ export class AuthService {
     password: string,
     res: Response,
   ): Promise<{ message: string }> {
-    const user = await this.userService.findByUsername(username);
+    const user = await this.userService.findByUsername(username, true);
     if (!user || !user.password) {
       throw new UnauthorizedException('Invalid username or password');
     }
@@ -40,9 +40,9 @@ export class AuthService {
       userId: Number(user.id),
       username: user.username,
       email: user.email,
-      roleId: user.role?.id ? Number(user.role.id) : 0,
-      orgId: user.orgId,
-      type: (user.role?.name as UserType) || ('org_staff' as UserType),
+      roleId: Number(user.role.id),
+      orgId: user?.orgId,
+      type: user.role.name as UserType,
     };
 
     const accessToken = this.jwtTokenService.generateAccessToken(payload);
