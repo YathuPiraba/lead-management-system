@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CallLog } from './call_logs.entity';
-import { Staff } from 'src/modules/staff/entities/staff.entity';
+import { Staff } from '../../staff/entities/staff.entity';
 
 @Entity('call_log_followups')
 export class CallLogFollowup {
