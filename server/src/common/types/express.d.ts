@@ -1,6 +1,6 @@
 export type UserType = 'product_admin' | 'org_admin' | 'org_staff';
 
-interface User {
+export interface UserInterface {
   type: UserType;
   userId: number;
   username: string;

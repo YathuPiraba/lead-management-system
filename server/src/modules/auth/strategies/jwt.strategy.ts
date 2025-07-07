@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { USER_NOT_FOUND } from '../../../common/constants/error.constants';
 import { User } from '../../user/entities/users.entity';
-import { UserType } from '../../../common/types/express';
+import { UserInterface } from '../../../common/types/express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -40,13 +40,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return null;
   }
 
-  async validate(payload: {
-    userId: number;
-    email: string;
-    roleId?: number;
-    orgId?: number;
-    type: UserType;
-  }): Promise<User> {
+  async validate(payload: UserInterface): Promise<User> {
     let relations: string[] = [];
 
     switch (payload.type) {
