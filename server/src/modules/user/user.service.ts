@@ -12,7 +12,7 @@ export class UserService {
   async findById(id: string, withRelations = true): Promise<User | null> {
     const options = withRelations
       ? { where: { id }, relations: ['role', 'organization', 'staff'] }
-      : { where: { id } };
+      : { where: { id }, relations: ['role'] };
 
     return this.userRepository.findOne(options);
   }
@@ -20,7 +20,7 @@ export class UserService {
   async findByEmail(email: string, withRelations = true): Promise<User | null> {
     const options = withRelations
       ? { where: { email }, relations: ['role', 'organization', 'staff'] }
-      : { where: { email } };
+      : { where: { email }, relations: ['role'] };
 
     return this.userRepository.findOne(options);
   }
@@ -31,7 +31,7 @@ export class UserService {
   ): Promise<User | null> {
     const options = withRelations
       ? { where: { username }, relations: ['role', 'organization', 'staff'] }
-      : { where: { username } };
+      : { where: { username }, relations: ['role'] };
 
     return this.userRepository.findOne(options);
   }

@@ -2,7 +2,7 @@ import { UserType } from '../../user/entities/roles.entity';
 
 export interface UserInterface {
   type: UserType;
-  userId: number;
+  userId: string;
   username: string;
   email: string;
   roleId: number;
