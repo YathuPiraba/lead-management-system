@@ -32,7 +32,7 @@ export class User {
   email: string;
 
   @Column({ name: 'org_id', nullable: true })
-  orgId: number;
+  orgId: string;
 
   @Column({ nullable: true })
   passwordResetToken: string;

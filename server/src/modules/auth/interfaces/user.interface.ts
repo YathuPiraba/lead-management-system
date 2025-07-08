@@ -6,5 +6,9 @@ export interface UserInterface {
   username: string;
   email: string;
   roleId: number;
-  orgId?: number;
+  orgId?: string;
+}
+
+export interface RefreshTokenPayload extends UserInterface {
+  tokenId: string;
 }
