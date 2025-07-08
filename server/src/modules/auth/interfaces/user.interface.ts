@@ -1,8 +1,8 @@
-export type UserType = 'product_admin' | 'org_admin' | 'org_staff';
+import { UserType } from '../../user/entities/roles.entity';
 
 export interface UserInterface {
   type: UserType;
-  userId: number;
+  userId: string;
   username: string;
   email: string;
   roleId: number;

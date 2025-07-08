@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { UserInterface } from './interfaces/user.interface';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class JwtTokenService {
@@ -18,11 +19,22 @@ export class JwtTokenService {
     });
   }
 
-  generateRefreshToken(user: UserInterface): string {
-    return this.jwtService.sign(user, {
+  generateRefreshToken(user: UserInterface): {
+    refreshToken: string;
+    tokenId: string;
+  } {
+    const tokenId = uuidv4();
+    const payload = {
+      ...user,
+      tokenId,
+    };
+
+    const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('jwt.refreshSecret'),
       expiresIn: this.configService.get<string>('jwt.refreshExpiresIn'),
     });
+
+    return { refreshToken, tokenId };
   }
 
   setAccessTokenCookie(res: Response, token: string): void {

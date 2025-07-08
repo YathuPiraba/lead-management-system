@@ -1,7 +1,4 @@
 export const REDIS_CLIENT = 'REDIS_CLIENT';
-export const REDIS_PUBLISHER = 'REDIS_PUBLISHER';
-export const REDIS_SUBSCRIBER = 'REDIS_SUBSCRIBER';
-
 // Key patterns
 export const REDIS_KEY_PREFIX = 'lead_ms';
 
