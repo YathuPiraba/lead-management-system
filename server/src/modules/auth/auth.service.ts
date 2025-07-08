@@ -48,7 +48,7 @@ export class AuthService {
     };
 
     const accessToken = this.jwtTokenService.generateAccessToken(payload);
-    const refreshToken = this.jwtTokenService.generateRefreshToken(payload);
+    const {refreshToken,tokenId} = this.jwtTokenService.generateRefreshToken(payload);
 
     this.jwtTokenService.setAccessTokenCookie(res, accessToken);
     this.jwtTokenService.setRefreshTokenCookie(res, refreshToken);
@@ -56,6 +56,7 @@ export class AuthService {
       user.role.name as UserType,
       user.id,
       refreshToken,
+      tokenId
     );
 
     return { message: 'Login successful' };

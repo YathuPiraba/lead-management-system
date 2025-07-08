@@ -20,9 +20,10 @@ export class RedisService implements OnModuleDestroy {
     userType: UserType,
     userId: string,
     refreshToken: string,
+    tokenId: string,
     expiresIn: number = REFRESH_TOKEN_TTL,
   ): Promise<void> {
-    const key = `${REDIS_KEY_PREFIX}:${REFRESH_TOKEN_KEY}:${userType}:${userId}`;
+    const key = `${REDIS_KEY_PREFIX}:${REFRESH_TOKEN_KEY}:${userType}:${userId}:${tokenId}`;
 
     await this.redisClient.set(key, refreshToken, 'EX', expiresIn);
 
@@ -41,9 +42,10 @@ export class RedisService implements OnModuleDestroy {
    */
   async getRefreshToken(
     userType: UserType,
-    userId: number,
+    userId: string,
+    tokenId: string,
   ): Promise<string | null> {
-    const key = `${REDIS_KEY_PREFIX}:${REFRESH_TOKEN_KEY}:${userType}:${userId}`;
+    const key = `${REDIS_KEY_PREFIX}:${REFRESH_TOKEN_KEY}:${userType}:${userId}:${tokenId}`;
     return this.redisClient.get(key);
   }
 
@@ -53,8 +55,12 @@ export class RedisService implements OnModuleDestroy {
    * @param userId The user's ID
    * @param tokenId Token identifier
    */
-  async removeRefreshToken(userType: UserType, userId: number): Promise<void> {
-    const key = `${REDIS_KEY_PREFIX}:${REFRESH_TOKEN_KEY}:${userType}:${userId}`;
+  async removeRefreshToken(
+    userType: UserType,
+    userId: string,
+    tokenId: string,
+  ): Promise<void> {
+    const key = `${REDIS_KEY_PREFIX}:${REFRESH_TOKEN_KEY}:${userType}:${userId}:${tokenId}`;
     const metaKey = `${key}:meta`;
 
     await this.redisClient.del(key, metaKey);
