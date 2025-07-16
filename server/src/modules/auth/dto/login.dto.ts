@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -15,4 +15,13 @@ export class LoginDto {
   })
   @IsString()
   password: string;
+
+  @ApiProperty({
+    description: 'Optional subdomain for tenant validation',
+    example: 'example',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  subdomain?: string;
 }

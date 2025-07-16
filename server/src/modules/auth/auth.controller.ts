@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  Get,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
@@ -10,6 +18,8 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserType } from '../user/entities/roles.entity';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -26,9 +36,9 @@ export class AuthController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { username, password } = loginDto;
+    const { username, password, subdomain } = loginDto;
     res.locals.message = 'Login successfull';
-    return this.authService.login(username, password, res);
+    return this.authService.login(username, password, subdomain, res);
   }
 
   @ApiBearerAuth()

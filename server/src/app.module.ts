@@ -1,14 +1,37 @@
+// ✅ NestJS Core
 import { Module, OnApplicationBootstrap } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+
+// ✅ NestJS Built-in Modules
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+
+// ✅ Application Controllers & Services
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+
+// ✅ Configuration Files
 import { databaseConfig } from './config/database.config';
 import { jwtConfig } from './config/jwt.config';
 import { redisConfig } from './config/redis.config';
 import { appConfig } from './config/app.config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { mailConfig } from './config/mail.config';
+
+// ✅ Common Guards
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/role.guard';
+import { TenantSubdomainGuard } from './common/guards/tenant-subdomain.guard';
+
+// ✅ Shared Modules
 import { RedisModule } from './redis/redis.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { MailModule } from './mail/mail.module';
+
+// ✅ Feature Modules
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { NotificationModule } from './modules/notification/notification.module';
@@ -16,17 +39,10 @@ import { OrganizationModule } from './modules/organization/organization.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { SubscriptionModule } from './modules/subscriptions/subscription.module';
 import { ActivityModule } from './modules/activity-logs/activity.module';
-import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './modules/user/user.module';
+
+// ✅ Seeders / Initial Data
 import { ProductAdminSeeder } from './database/seeders/initial-data.seed';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-import { MailModule } from './mail/mail.module';
-import { RolesGuard } from './common/guards/role.guard';
 
 @Module({
   imports: [
@@ -92,6 +108,10 @@ import { RolesGuard } from './common/guards/role.guard';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantSubdomainGuard,
     },
   ],
 })

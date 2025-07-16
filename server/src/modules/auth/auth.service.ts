@@ -10,6 +10,7 @@ import { Request, Response } from 'express';
 import { UserType } from '../user/entities/roles.entity';
 import { RedisService } from '../../redis/redis.service';
 import { UserResponseDto } from './dto/user-response.dto';
+import { OrganizationService } from '../organization/organization.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private jwtTokenService: JwtTokenService,
     private userService: UserService,
     private redisService: RedisService,
+    private organizationService: OrganizationService,
   ) {}
   async hashPassword(plainPassword: string): Promise<string> {
     return await argon2.hash(plainPassword);
@@ -29,6 +31,7 @@ export class AuthService {
   async login(
     username: string,
     password: string,
+    subdomain: string | undefined,
     res: Response,
   ): Promise<{ message: string }> {
     const user = await this.userService.findByUsername(username);
@@ -39,6 +42,27 @@ export class AuthService {
     const isPasswordValid = await this.verifyPassword(user.password, password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid username or password');
+    }
+
+    if (user.orgId) {
+      if (!subdomain) {
+        throw new UnauthorizedException('Subdomain required for tenant login');
+      }
+      const orgConfig =
+        await this.organizationService.findOrgConfigBySubdomain(subdomain);
+      if (!orgConfig) {
+        throw new UnauthorizedException('Invalid organization subdomain');
+      }
+      if (user.orgId !== orgConfig.organization.id) {
+        throw new UnauthorizedException('Organization mismatch');
+      }
+    } else {
+      // Product admin: no orgId, subdomain must be empty or undefined
+      if (subdomain) {
+        throw new UnauthorizedException(
+          'Product admin login should not have subdomain',
+        );
+      }
     }
 
     // Build payload

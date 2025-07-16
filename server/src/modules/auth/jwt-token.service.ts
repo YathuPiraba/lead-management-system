@@ -46,6 +46,12 @@ export class JwtTokenService {
     });
   }
 
+  verifyAccessToken(token: string): UserInterface {
+    return this.jwtService.verify(token, {
+      secret: this.configService.get<string>('jwt.secret'),
+    });
+  }
+
   setAccessTokenCookie(res: Response, token: string): void {
     res.cookie('access_token', token, {
       httpOnly: true,
