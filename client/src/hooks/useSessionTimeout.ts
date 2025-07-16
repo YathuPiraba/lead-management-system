@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useAppStore } from "../store/appStore";
+import { useAppStore } from "@/store/appStore";
 
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 const WARNING_TIME = 2 * 60 * 1000; // Show warning 2 minutes before expiry
 
-export const useSessionTimeout = () => {
+export const useSessionTimeout = ({ enabled = true } = {}) => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<"timeout" | "token_expired">(
     "timeout"
@@ -14,28 +14,21 @@ export const useSessionTimeout = () => {
   const { isAuthenticated, logout } = useAppStore();
 
   const resetTimer = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    if (warningTimeoutRef.current) {
-      clearTimeout(warningTimeoutRef.current);
-    }
+    if (!enabled || !isAuthenticated) return;
 
+    clearTimeout(timeoutRef.current!);
+    clearTimeout(warningTimeoutRef.current!);
     setShowModal(false);
 
-    if (isAuthenticated) {
-      // Set warning timer
-      warningTimeoutRef.current = setTimeout(() => {
-        setModalType("timeout");
-        setShowModal(true);
-      }, SESSION_TIMEOUT - WARNING_TIME);
+    warningTimeoutRef.current = setTimeout(() => {
+      setModalType("timeout");
+      setShowModal(true);
+    }, SESSION_TIMEOUT - WARNING_TIME);
 
-      // Set logout timer
-      timeoutRef.current = setTimeout(() => {
-        logout();
-      }, SESSION_TIMEOUT);
-    }
-  }, [isAuthenticated, logout]);
+    timeoutRef.current = setTimeout(() => {
+      logout();
+    }, SESSION_TIMEOUT);
+  }, [enabled, isAuthenticated, logout]);
 
   const extendSession = () => {
     setShowModal(false);
@@ -48,36 +41,30 @@ export const useSessionTimeout = () => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      resetTimer();
+    if (!enabled || !isAuthenticated) return;
 
-      const events = [
-        "mousedown",
-        "mousemove",
-        "keypress",
-        "scroll",
-        "touchstart",
-        "click",
-      ];
+    resetTimer();
 
-      events.forEach((event) => {
-        document.addEventListener(event, resetTimer, true);
-      });
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
+    events.forEach((event) =>
+      document.addEventListener(event, resetTimer, true)
+    );
 
-      return () => {
-        events.forEach((event) => {
-          document.removeEventListener(event, resetTimer, true);
-        });
-
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        if (warningTimeoutRef.current) {
-          clearTimeout(warningTimeoutRef.current);
-        }
-      };
-    }
-  }, [isAuthenticated, resetTimer]);
+    return () => {
+      events.forEach((event) =>
+        document.removeEventListener(event, resetTimer, true)
+      );
+      clearTimeout(timeoutRef.current!);
+      clearTimeout(warningTimeoutRef.current!);
+    };
+  }, [enabled, isAuthenticated, resetTimer]);
 
   return { showModal, extendSession, modalType, showTokenExpiredModal };
 };

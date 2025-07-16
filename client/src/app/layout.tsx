@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import AppLayout from "@/components/AppLayout";
 
 export const metadata: Metadata = {
-  title: "Loading...",
   description: "Lead Management System",
 };
 

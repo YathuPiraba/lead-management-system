@@ -1,7 +1,6 @@
 import { getSubdomain } from "@/utils/tenant";
 import { NextRequest, NextResponse } from "next/server";
-
-const PUBLIC_PATHS = ["/", "/login", "/plans", "/signup", "/reset-password"];
+import { PUBLIC_PATHS } from "@/constants/routes";
 
 export async function middleware(req: NextRequest) {
   const { pathname, hostname } = req.nextUrl;

@@ -3,8 +3,9 @@ import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { setSessionTimeoutCallback } from "@/lib/api-client";
 import { useEffect } from "react";
 import { useAppStore } from "@/store/appStore";
-import { notFound } from "next/navigation";
+import { notFound, usePathname } from "next/navigation";
 import SessionExpirationModal from "./SessionExpirationModal";
+import { PUBLIC_PATHS } from "@/constants/routes";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -12,16 +13,22 @@ interface AppLayoutProps {
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children, subdomain }) => {
+  const pathname = usePathname();
+  const isPublicPath = PUBLIC_PATHS.some((path: string) =>
+    pathname.startsWith(path)
+  );
+
   const { showModal, extendSession, modalType, showTokenExpiredModal } =
-    useSessionTimeout();
+    useSessionTimeout({ enabled: !isPublicPath });
 
   const { organization, isOrgLoading, fetchOrganization, clearOrganization } =
     useAppStore();
 
   useEffect(() => {
-    // Set the callback for when refresh token expires
-    setSessionTimeoutCallback(showTokenExpiredModal);
-  }, [showTokenExpiredModal]);
+    if (!isPublicPath) {
+      setSessionTimeoutCallback(showTokenExpiredModal);
+    }
+  }, [isPublicPath, showTokenExpiredModal]);
 
   useEffect(() => {
     const loadOrganization = async () => {
@@ -30,7 +37,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, subdomain }) => {
           await fetchOrganization(subdomain);
         } catch (error) {
           console.error("Failed to fetch organization:", error);
-          notFound(); // Trigger 404 if organization not found
+          notFound();
         }
       } else {
         clearOrganization();
@@ -40,12 +47,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, subdomain }) => {
     loadOrganization();
   }, [subdomain, fetchOrganization, clearOrganization]);
 
-  // Update document title and favicon when organization changes
   useEffect(() => {
     if (organization) {
       document.title = organization.name || "Lead Management System";
-
-      // Update favicon
       const favicon = document.querySelector(
         'link[rel="icon"]'
       ) as HTMLLinkElement;
@@ -55,7 +59,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, subdomain }) => {
     }
   }, [organization]);
 
-  // Show loading state while fetching organization
   if (subdomain && isOrgLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -64,7 +67,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, subdomain }) => {
     );
   }
 
-  // If we have a subdomain but no organization after loading, show 404
   if (subdomain && !organization && !isOrgLoading) {
     notFound();
   }
@@ -72,11 +74,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children, subdomain }) => {
   return (
     <>
       {children}
-      <SessionExpirationModal
-        isOpen={showModal}
-        onExtendSession={extendSession}
-        modalType={modalType}
-      />
+      {!isPublicPath && (
+        <SessionExpirationModal
+          isOpen={showModal}
+          onExtendSession={extendSession}
+          modalType={modalType}
+        />
+      )}
     </>
   );
 };
