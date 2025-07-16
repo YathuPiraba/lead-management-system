@@ -13,12 +13,14 @@ export class OrganizationService {
     private organizationRepo: Repository<Organization>,
   ) {}
 
-  async findOrgConfigBySubdomain(
-    subdomain: string,
-  ): Promise<OrganizationConfig | null> {
-    return this.orgConfigRepo.findOne({
-      where: { loginUrlSubdomain: subdomain },
-      relations: ['organization'],
+  async findOrgBySubdomain(subdomain: string): Promise<Organization | null> {
+    return this.organizationRepo.findOne({
+      where: {
+        config: {
+          loginUrlSubdomain: subdomain,
+        },
+      },
+      relations: ['config'],
     });
   }
 }

@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { useAuthStore } from "../store/authStore";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,6 +13,13 @@ let failedQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
 }> = [];
+
+// Global reference to session timeout hook
+let sessionTimeoutCallback: (() => void) | null = null;
+
+export const setSessionTimeoutCallback = (callback: () => void) => {
+  sessionTimeoutCallback = callback;
+};
 
 const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach(({ resolve, reject }) => {
@@ -30,7 +36,6 @@ const processQueue = (error: unknown, token: string | null = null) => {
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    // You can add any request modifications here
     return config;
   },
   (error) => {
@@ -71,13 +76,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
 
-        // If refresh fails, trigger logout
-        const { logout } = useAuthStore.getState();
-        await logout();
-
-        // Redirect to login or show session expired modal
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+        if (sessionTimeoutCallback) {
+          sessionTimeoutCallback();
         }
 
         return Promise.reject(refreshError);

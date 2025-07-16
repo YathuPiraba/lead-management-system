@@ -53,14 +53,13 @@ export class TenantSubdomainGuard implements CanActivate {
       throw new UnauthorizedException('Subdomain header missing');
     }
 
-    const org =
-      await this.organizationService.findOrgConfigBySubdomain(subdomain);
+    const org = await this.organizationService.findOrgBySubdomain(subdomain);
 
     if (!org) {
       throw new UnauthorizedException('Invalid organization subdomain');
     }
 
-    if (user.orgId !== org.organization.id) {
+    if (user.orgId !== org.id) {
       throw new UnauthorizedException('Organization mismatch');
     }
 

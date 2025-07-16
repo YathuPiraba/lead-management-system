@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useAuthStore } from "../store/authStore";
+import { useAppStore } from "../store/appStore";
 
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 const WARNING_TIME = 2 * 60 * 1000; // Show warning 2 minutes before expiry
 
 export const useSessionTimeout = () => {
   const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<"timeout" | "token_expired">(
+    "timeout"
+  );
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, logout } = useAppStore();
 
   const resetTimer = useCallback(() => {
     if (timeoutRef.current) {
@@ -23,6 +26,7 @@ export const useSessionTimeout = () => {
     if (isAuthenticated) {
       // Set warning timer
       warningTimeoutRef.current = setTimeout(() => {
+        setModalType("timeout");
         setShowModal(true);
       }, SESSION_TIMEOUT - WARNING_TIME);
 
@@ -36,6 +40,11 @@ export const useSessionTimeout = () => {
   const extendSession = () => {
     setShowModal(false);
     resetTimer();
+  };
+
+  const showTokenExpiredModal = () => {
+    setModalType("token_expired");
+    setShowModal(true);
   };
 
   useEffect(() => {
@@ -70,5 +79,5 @@ export const useSessionTimeout = () => {
     }
   }, [isAuthenticated, resetTimer]);
 
-  return { showModal, extendSession };
+  return { showModal, extendSession, modalType, showTokenExpiredModal };
 };

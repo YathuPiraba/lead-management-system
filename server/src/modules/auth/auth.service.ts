@@ -48,12 +48,11 @@ export class AuthService {
       if (!subdomain) {
         throw new UnauthorizedException('Subdomain required for tenant login');
       }
-      const orgConfig =
-        await this.organizationService.findOrgConfigBySubdomain(subdomain);
-      if (!orgConfig) {
+      const org = await this.organizationService.findOrgBySubdomain(subdomain);
+      if (!org) {
         throw new UnauthorizedException('Invalid organization subdomain');
       }
-      if (user.orgId !== orgConfig.organization.id) {
+      if (user.orgId !== org.id) {
         throw new UnauthorizedException('Organization mismatch');
       }
     } else {

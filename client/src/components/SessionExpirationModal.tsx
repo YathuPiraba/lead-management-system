@@ -1,47 +1,73 @@
-"use client";
+import React, { useEffect, useState } from "react";
+import { useAppStore } from "@/store/appStore";
 
-import React from "react";
-// import { useAuth } from "@/stores/auth-store"; // Assuming Zustand store
-import { useRouter } from "next/navigation";
 interface SessionExpirationModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onExtendSession: () => void;
+  modalType: "timeout" | "token_expired";
 }
 
-const SessionExpirationModal = ({
+const SessionExpirationModal: React.FC<SessionExpirationModalProps> = ({
   isOpen,
-  onClose,
-}: SessionExpirationModalProps) => {
-  // const { logout } = useAuth(); // Access logout from Zustand store
-  const router = useRouter();
+  onExtendSession,
+  modalType,
+}) => {
+  const [countdown, setCountdown] = useState(60);
+  const { logout } = useAppStore();
 
-  const handleRedirect = async () => {
-    try {
-      // Log the user out
-      // await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          logout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen, logout]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCountdown(modalType === "token_expired" ? 10 : 60);
     }
-    // Use Next.js router to redirect to login page
-    router.push("/");
-    onClose();
-  };
+  }, [isOpen, modalType]);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Session Expired</h2>
-        <p className="mb-6">
-          Your session has expired. Please log in again to continue.
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          {modalType === "token_expired"
+            ? "Session Expired"
+            : "Session Expiring"}
+        </h2>
+        <p className="text-gray-600 mb-4">
+          {modalType === "token_expired"
+            ? `Your session has expired and you will be logged out in ${countdown} seconds.`
+            : `Your session is about to expire due to inactivity. You will be logged out in ${countdown} seconds.`}
         </p>
-        <button
-          onClick={handleRedirect}
-          className="w-full bg-black text-white py-2 px-4 rounded"
-        >
-          Log In
-        </button>
+        <div className="flex justify-end space-x-4">
+          <button
+            onClick={logout}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+          >
+            Logout
+          </button>
+          {modalType === "timeout" && (
+            <button
+              onClick={onExtendSession}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Extend Session
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
