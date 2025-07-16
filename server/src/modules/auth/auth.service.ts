@@ -102,7 +102,7 @@ export class AuthService {
       userId: fullUser.id,
       username: fullUser.username,
       email: fullUser.email,
-      roleId: Number(fullUser.role.id),
+      roleId: fullUser.role.id,
       orgId: fullUser.orgId,
       type: fullUser.role.name as UserType,
       isFirstLogin: fullUser.isFirstLogin,
