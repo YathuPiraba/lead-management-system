@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Res,
-  Get,
-  Req,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
@@ -17,10 +9,9 @@ import {
   ApiResponse,
   ApiBody,
   ApiBearerAuth,
+  ApiOkResponse,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { UserType } from '../user/entities/roles.entity';
-
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
@@ -72,5 +63,14 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.logout(req, res);
+  }
+
+  @Get('verify')
+  @ApiOkResponse({ description: 'Access token is valid' })
+  @ApiUnauthorizedResponse({
+    description: 'Access token is invalid or expired',
+  })
+  verify(): { valid: boolean } {
+    return { valid: true };
   }
 }

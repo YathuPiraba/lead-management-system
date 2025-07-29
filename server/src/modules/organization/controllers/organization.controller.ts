@@ -1,7 +1,7 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
-import { Public } from '../../common/decorators/public.decorator';
-import { Organization } from './entities/organizations.entity';
-import { OrganizationService } from './organization.service';
+import { Public } from '../../../common/decorators/public.decorator';
+import { Organization } from '../entities/organizations.entity';
+import { OrganizationService } from '../services/organization.service';
 import {
   ApiOperation,
   ApiParam,

@@ -10,7 +10,7 @@ import { Request, Response } from 'express';
 import { UserType } from '../user/entities/roles.entity';
 import { RedisService } from '../../redis/redis.service';
 import { UserResponseDto } from './dto/user-response.dto';
-import { OrganizationService } from '../organization/organization.service';
+import { OrganizationService } from '../organization/services/organization.service';
 
 @Injectable()
 export class AuthService {
@@ -80,7 +80,7 @@ export class AuthService {
 
     this.jwtTokenService.setAccessTokenCookie(res, accessToken);
     this.jwtTokenService.setRefreshTokenCookie(res, refreshToken);
-    this.redisService.storeRefreshToken(
+    await this.redisService.storeRefreshToken(
       user.role.name as UserType,
       user.id,
       refreshToken,
@@ -121,6 +121,7 @@ export class AuthService {
     try {
       payload = this.jwtTokenService.verifyRefreshToken(token);
     } catch (err) {
+      console.error('Refresh token verification failed:', err);
       throw new UnauthorizedException('Invalid refresh token');
     }
 
