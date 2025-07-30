@@ -1,7 +1,7 @@
 import { StateCreator } from "zustand";
-import { AxiosError } from "axios";
 import { LoginDto } from "@/interfaces/auth.interface";
 import { loginUser, logoutUser, getUserDetails } from "@/services/userService";
+import { User } from "@/interfaces/user.interface";
 
 export interface AuthSlice {
   user: object | null;
@@ -33,9 +33,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
 
       set({ isAuthenticated: true, isLoading: false });
     } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-      const errorMessage = error.response?.data?.message || "Login failed";
-
+      const errorMessage = (err as Error).message;
       set({
         error: errorMessage,
         isLoading: false,
@@ -43,7 +41,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
         user: null,
       });
 
-      throw error;
+      console.error(err);
     }
   },
 
@@ -66,14 +64,15 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
         window.location.href = "/login";
       }
     } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-      const errorMessage = error.response?.data?.message || "Logout failed";
+      const errorMessage = (err as Error).message;
       set({
         error: errorMessage,
         isLoading: false,
         isAuthenticated: false,
         user: null,
       });
+
+      console.error(err);
 
       if (typeof window !== "undefined") {
         window.location.href = "/login";
@@ -88,15 +87,12 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
       const userData = await getUserDetails();
 
       set({
-        user: userData,
+        user: userData as User,
         isAuthenticated: true,
         isLoading: false,
       });
     } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-      const errorMessage =
-        error.response?.data?.message || "Failed to get user details";
-
+      const errorMessage = (err as Error).message;
       set({
         error: errorMessage,
         isLoading: false,
@@ -104,7 +100,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
         user: null,
       });
 
-      throw error;
+      console.error(err);
     }
   },
 

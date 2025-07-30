@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { OrganizationService } from '../../modules/organization/organization.service';
+import { OrganizationService } from '../../modules/organization/services/organization.service';
 import { ValidateTenantKey } from '../decorators/validate-tenant.decorator';
 
 @Injectable()

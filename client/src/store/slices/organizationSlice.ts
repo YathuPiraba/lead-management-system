@@ -36,7 +36,7 @@ export const createOrganizationSlice: StateCreator<
       set({ organization: org, isOrgLoading: false });
     } catch (err) {
       set({ organization: null, isOrgLoading: false });
-      throw err;
+      console.error(err);
     }
   },
 

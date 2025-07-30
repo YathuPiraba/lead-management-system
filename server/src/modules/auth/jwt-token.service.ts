@@ -26,7 +26,7 @@ export class JwtTokenService {
     refreshToken: string;
     tokenId: string;
   } {
-    const tokenId = uuidv4();
+    const tokenId: string = uuidv4();
     const payload: RefreshTokenPayload = {
       ...user,
       tokenId,
