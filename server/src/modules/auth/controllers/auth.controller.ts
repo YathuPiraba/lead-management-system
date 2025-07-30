@@ -1,8 +1,8 @@
 import { Controller, Post, Body, Res, Get, Req } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { AuthService } from './auth.service';
-import { Public } from '../../common/decorators/public.decorator';
-import { LoginDto } from './dto/login.dto';
+import { AuthService } from '../services/auth.service';
+import { Public } from '../../../common/decorators/public.decorator';
+import { LoginDto } from '../dto/login.dto';
 import {
   ApiTags,
   ApiOperation,

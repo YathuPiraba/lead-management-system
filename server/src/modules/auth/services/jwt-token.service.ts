@@ -5,7 +5,7 @@ import { Response } from 'express';
 import {
   RefreshTokenPayload,
   UserInterface,
-} from './interfaces/user.interface';
+} from '../interfaces/user.interface';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()

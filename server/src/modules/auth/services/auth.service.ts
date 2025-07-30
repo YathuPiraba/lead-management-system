@@ -1,16 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtTokenService } from './jwt-token.service';
-import { UserService } from '../user/user.service';
+import { UserService } from '../../user/user.service';
 import * as argon2 from 'argon2';
 import {
   RefreshTokenPayload,
   UserInterface,
-} from './interfaces/user.interface';
+} from '../interfaces/user.interface';
 import { Request, Response } from 'express';
-import { UserType } from '../user/entities/roles.entity';
-import { RedisService } from '../../redis/redis.service';
-import { UserResponseDto } from './dto/user-response.dto';
-import { OrganizationService } from '../organization/services/organization.service';
+import { UserType } from '../../user/entities/roles.entity';
+import { RedisService } from '../../../redis/redis.service';
+import { UserResponseDto } from '../dto/user-response.dto';
+import { OrganizationService } from '../../organization/services/organization.service';
 
 @Injectable()
 export class AuthService {
