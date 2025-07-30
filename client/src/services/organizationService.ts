@@ -1,9 +1,10 @@
+import { Organization } from "@/interfaces/organization.interface";
 import { api } from "@/lib/api-client";
 
 export const fetchOrgConfig = async (subdomain: string) => {
   try {
-    const response = await api.get(`/organizations/${subdomain}`);
-    return response;
+    const response = await api.get<Organization>(`/organizations/${subdomain}`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching organization config:", error);
     return null;

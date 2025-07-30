@@ -41,7 +41,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
         user: null,
       });
 
-      throw err;
+      console.error(err);
     }
   },
 
@@ -72,6 +72,8 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
         user: null,
       });
 
+      console.error(err);
+
       if (typeof window !== "undefined") {
         window.location.href = "/login";
       }
@@ -98,7 +100,7 @@ export const createAuthSlice: StateCreator<AuthSlice, [], [], AuthSlice> = (
         user: null,
       });
 
-      throw err;
+      console.error(err);
     }
   },
 

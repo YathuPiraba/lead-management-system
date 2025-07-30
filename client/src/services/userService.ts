@@ -1,5 +1,6 @@
 import { api } from "@/lib/api-client";
 import { LoginDto } from "@/interfaces/auth.interface";
+import { User } from "@/interfaces/user.interface";
 
 export const loginUser = async (data: LoginDto) => {
   const response = await api.post("/auth/login", data);
@@ -12,7 +13,7 @@ export const logoutUser = async () => {
 };
 
 export const getUserDetails = async () => {
-  const response = await api.get("/auth/user-details");
+  const response = await api.get<User>("/auth/user-details");
   return response.data;
 };
 
