@@ -33,6 +33,7 @@ export class AuthService {
     password: string,
     subdomain: string | undefined,
     res: Response,
+    req: Request,
   ): Promise<{ message: string }> {
     const user = await this.userService.findByUsername(username);
     if (!user || !user.password) {
@@ -64,6 +65,13 @@ export class AuthService {
       }
     }
 
+    const deviceFingerprint = req.headers['x-device-fingerprint'] as string;
+    const userAgent = req.headers['user-agent'] || '';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = Array.isArray(rawIp)
+      ? rawIp[0]
+      : rawIp?.toString().split(',')[0]?.trim();
+
     // Build payload
     const payload: UserInterface = {
       userId: user.id,
@@ -85,6 +93,9 @@ export class AuthService {
       user.id,
       refreshToken,
       tokenId,
+      deviceFingerprint,
+      userAgent,
+      ip,
     );
 
     return { message: 'Login successful' };
@@ -116,6 +127,9 @@ export class AuthService {
     const token = req.cookies?.refresh_token;
     if (!token) throw new UnauthorizedException('No refresh token provided');
 
+    const deviceFingerprint = req.headers['x-device-fingerprint'] as string;
+    const userAgent = req.headers['user-agent'] || '';
+
     // Decode without verifying to extract tokenId
     let payload: RefreshTokenPayload;
     try {
@@ -126,13 +140,23 @@ export class AuthService {
     }
 
     const { userId, type, tokenId } = payload;
-    const storedToken = await this.redisService.getRefreshToken(
+    const tokenData = await this.redisService.getRefreshTokenWithMeta(
       type,
       userId,
       tokenId,
     );
-    if (!storedToken || storedToken !== token) {
+    if (!tokenData || tokenData.token !== token) {
       throw new UnauthorizedException('Refresh token not found or mismatched');
+    }
+
+    // Verify device fingerprint matches
+    if (
+      tokenData.deviceFingerprint &&
+      deviceFingerprint !== tokenData.deviceFingerprint
+    ) {
+      // Invalidate the token if device fingerprint doesn't match
+      await this.redisService.removeRefreshToken(type, userId, tokenId);
+      throw new UnauthorizedException('Device mismatch - please login again');
     }
 
     // Fetch user
@@ -154,12 +178,20 @@ export class AuthService {
     const { refreshToken: newRefreshToken, tokenId: newTokenId } =
       this.jwtTokenService.generateRefreshToken(userPayload);
 
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = Array.isArray(rawIp)
+      ? rawIp[0]
+      : rawIp?.toString().split(',')[0]?.trim();
+
     // Store new token in Redis
     await this.redisService.storeRefreshToken(
       userPayload.type,
       userPayload.userId,
-      newTokenId,
       newRefreshToken,
+      newTokenId,
+      deviceFingerprint,
+      userAgent,
+      ip,
     );
 
     // Delete old token

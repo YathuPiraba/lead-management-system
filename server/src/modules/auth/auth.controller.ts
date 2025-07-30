@@ -25,11 +25,12 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() loginDto: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { username, password, subdomain } = loginDto;
     res.locals.message = 'Login successfull';
-    return this.authService.login(username, password, subdomain, res);
+    return this.authService.login(username, password, subdomain, res, req);
   }
 
   @ApiBearerAuth()

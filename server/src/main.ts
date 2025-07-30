@@ -51,6 +51,12 @@ async function bootstrap() {
   const apiPrefix = configService.get<string>('app.prefix') ?? 'api/v1';
   app.setGlobalPrefix(apiPrefix);
 
+  const nodeEnv = process.env.NODE_ENV || 'development';
+
+  if (nodeEnv?.trim() === 'production') {
+    app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  }
+
   // Swagger setup
   const swaggerConfig = new DocumentBuilder()
     .setTitle('API Documentation')

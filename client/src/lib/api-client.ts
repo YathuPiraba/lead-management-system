@@ -3,7 +3,13 @@ import {
   ApiResponse,
   ErrorResponse,
 } from "@/interfaces/api-response.interface";
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { deviceFingerprint } from "@/utils/device-fingerprint";
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -40,7 +46,30 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 // Request interceptor
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    const needsFingerprint = [
+      "/auth/login",
+      "/auth/refresh-token",
+      "/auth/register",
+    ].some((path) => config.url?.includes(path));
+
+    if (needsFingerprint) {
+      try {
+        const fingerprint = await deviceFingerprint.generateFingerprint();
+        if (!config.headers) {
+          config.headers = new AxiosHeaders();
+        }
+
+        if (config.headers instanceof AxiosHeaders) {
+          config.headers.set("X-Device-Fingerprint", fingerprint);
+        } else {
+          (config.headers as Record<string, string>)["X-Device-Fingerprint"] =
+            fingerprint;
+        }
+      } catch (error) {
+        console.warn("Failed to generate device fingerprint:", error);
+      }
+    }
     return config;
   },
   (error) => {
@@ -83,11 +112,10 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-
+        deviceFingerprint.clearFingerprint();
         if (sessionTimeoutCallback) {
           sessionTimeoutCallback();
         }
-
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
