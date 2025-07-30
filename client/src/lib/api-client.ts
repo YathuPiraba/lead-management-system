@@ -95,7 +95,12 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response?.data?.message) {
-      const apiError: ApiError = new Error(error.response.data.message);
+      const message = error.response.data.message;
+      const errorMessage = Array.isArray(message)
+        ? message.join("; ")
+        : message;
+
+      const apiError: ApiError = new Error(errorMessage);
       apiError.statusCode = error.response.data.statusCode;
 
       if ("error" in error.response.data) {
